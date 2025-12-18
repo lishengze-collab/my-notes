@@ -5,278 +5,293 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Private Memo</title>
+    <title>Private Memo PN-3.1.7</title>
     <style>
         :root {
-            --bg-color: #e5ddd5;
-            --bubble-me: #dcf8c6;
-            --text-main: #303030;
-            --timestamp-color: #8696a0;
-            --accent-green: #25d366;
+            --bg-main: #f9f9f9; 
+            --text-main: #1c1c1e;
+            --text-secondary: #8e8e93;
+            --accent-green: #34c759; 
+            --accent-blue: #007aff;
+            --line-color: #c6c6c8;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
-        /* 确保1区域和2区域背景色完全一致为纯白 */
-        html { background-color: #ffffff; }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        html, body { 
+            background-color: var(--bg-main); 
+            margin: 0; padding: 0; height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
+            display: flex; flex-direction: column; overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            /* 针对 iPhone 17 的平滑滚动优化 */
+            scroll-behavior: smooth;
         }
 
-        /* --- Header: 适配灵动岛并确保按钮可点 --- */
+        /* --- Header: 适配灵动岛布局 --- */
         header {
-            background: #ffffff;
+            background: var(--bg-main);
             position: relative;
-            padding-top: var(--safe-top); 
-            padding-bottom: 12px;
-            padding-left: 15px;
-            padding-right: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 999; 
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            padding-top: calc(var(--safe-top) + 2px); /* 细微避让灵动岛 */
+            padding-left: 18px; padding-right: 18px;
+            display: flex; justify-content: space-between; align-items: center; z-index: 1001;
+            height: auto; min-height: 44px;
         }
 
         h1 { 
-            font-size: 17px; 
-            font-weight: 700; 
-            margin: 0; 
-            margin-top: 22px; /* 避开灵动岛黑区 */
-            color: #41525d; 
-            flex: 1; 
-            text-align: center; 
+            font-size: 15px; font-weight: 600; color: var(--text-secondary); 
+            margin: 0; letter-spacing: -0.3px; cursor: pointer;
+            padding-top: 10px; /* 标题重心微调 */
         }
 
-        .header-btn { 
-            font-size: 18px; 
-            color: #54656f; 
-            background: none; 
-            border: none; 
-            cursor: pointer; 
-            min-width: 44px; 
-            min-height: 44px;
-            margin-top: 18px; 
-            display: flex;
-            align-items: center;
-            justify-content: center;
+        .search-trigger {
+            background: none; border: none; padding: 10px 0; color: var(--accent-green);
+            cursor: pointer; display: flex; align-items: center;
+            padding-top: 12px;
         }
 
-        /* --- Search Container --- */
-        #search-container {
-            background: #ffffff; 
-            padding: 5px 15px 12px 15px; 
-            display: none; 
-            position: relative;
-            z-index: 998;
-            border-bottom: 0.5px solid #eee;
+        /* --- 搜索框区域 --- */
+        #search-wrapper {
+            background: var(--bg-main);
+            padding: 4px 16px 10px 16px;
+            display: none; z-index: 1000;
+            animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #search-input { 
-            width: 100%; background: #f0f2f5; border: none; border-radius: 10px; 
-            padding: 10px 12px; font-size: 14px; outline: none; box-sizing: border-box;
+            width: 100%; background: #e3e3e6; border: none; border-radius: 12px; 
+            padding: 10px 14px; font-size: 17px; outline: none; box-sizing: border-box;
+            -webkit-appearance: none;
         }
 
-        /* --- Notes List --- */
-        #notes-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 15px;
-            padding-bottom: 120px; 
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        /* --- 动态标签栏 --- */
+        #tag-bar {
+            padding: 8px 16px 12px 16px;
+            display: flex; gap: 8px; overflow-x: auto; white-space: nowrap;
+            background: var(--bg-main);
             -webkit-overflow-scrolling: touch;
+            will-change: transform;
+        }
+        #tag-bar::-webkit-scrollbar { display: none; }
+        .tag-pill {
+            background: #e3e3e6; color: var(--text-main); padding: 6px 14px;
+            border-radius: 16px; font-size: 13px; font-weight: 500;
+            transition: background 0.2s;
+        }
+        .tag-pill.active { background: var(--accent-blue); color: white; }
+
+        /* --- Journal List --- */
+        #notes-container {
+            flex: 1; overflow-y: auto; padding: 10px 20px 180px 20px;
+            display: flex; flex-direction: column; -webkit-overflow-scrolling: touch;
+            /* 启用硬件加速 */
+            transform: translateZ(0);
         }
 
-        .note-row { display: flex; justify-content: flex-end; width: 100%; animation: fadeIn 0.2s ease; }
-        
-        .bubble {
-            background-color: var(--bubble-me);
-            color: var(--text-main);
-            padding: 8px 12px 6px 12px;
-            border-radius: 10px 0px 10px 10px;
-            max-width: 85%;
-            position: relative;
-            box-shadow: 0 1px 0.5px rgba(0,0,0,0.12);
-            word-wrap: break-word;
-            font-size: 16px;
-            line-height: 1.5;
+        .note-row { 
+            position: relative; padding-left: 18px; margin-bottom: 30px;
+            border-left: 1.2px solid #d1d1d6; animation: fadeIn 0.35s ease-out;
         }
 
-        .bubble img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
-        .bubble a { color: #0645ad; text-decoration: underline; }
-        .note-row.hidden-state .bubble { background-color: #f1f1f1; color: #999; border: 1px dashed #ccc; box-shadow: none; }
+        .timestamp-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+        .timestamp { font-size: 11px; color: var(--text-secondary); font-weight: 600; font-variant-numeric: tabular-nums; opacity: 0.8; }
+        .hide-btn { font-size: 18px; color: var(--text-secondary); cursor: pointer; padding: 0 5px; line-height: 1; opacity: 0.4; }
 
-        .meta-info {
-            display: flex; justify-content: flex-end; align-items: center;
-            margin-top: 4px; font-size: 11px; color: var(--timestamp-color); gap: 4px;
-        }
-        .check-mark { color: var(--accent-green); font-weight: bold; font-size: 14px; }
-        .hide-btn { margin-right: 5px; opacity: 0.5; }
+        .journal-content { font-size: 17px; line-height: 1.6; color: var(--text-main); word-wrap: break-word; white-space: pre-wrap; letter-spacing: -0.1px; }
+        .journal-content img { max-width: 100%; border-radius: 14px; margin-top: 12px; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .hashtag { color: var(--accent-blue); font-weight: 600; cursor: pointer; }
 
-        /* --- Input Area --- */
+        .note-row.hidden-state { opacity: 0.2; filter: grayscale(1) blur(0.5px); }
+        .empty-hint { text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 80px; }
+
+        /* --- Input Area: 适配 iPhone 17 全屏底座 --- */
         .input-wrapper {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: #f0f2f5; padding: 10px;
-            padding-bottom: calc(15px + var(--safe-bottom));
-            display: flex; align-items: flex-end; gap: 10px; z-index: 1000;
+            position: fixed; bottom: 0; left: 0; right: 0; background: rgba(249, 249, 249, 0.96); 
+            backdrop-filter: blur(25px) saturate(190%);
+            padding: 14px 18px calc(14px + var(--safe-bottom)) 18px;
+            display: flex; align-items: center; gap: 12px; z-index: 1002;
+            border-top: 0.5px solid var(--line-color);
         }
+
+        .sync-btn-mini {
+            font-size: 13px; font-weight: 700; color: #ffffff;
+            background: var(--accent-green); border: none;
+            padding: 7px 14px; border-radius: 8px; white-space: nowrap;
+            cursor: pointer; transition: transform 0.15s;
+        }
+        .sync-btn-mini:active { transform: scale(0.92); opacity: 0.8; }
 
         #note-input {
-            flex: 1; border: none; background: white; border-radius: 20px;
-            padding: 10px 15px; font-size: 16px; outline: none; font-family: inherit;
-            resize: none; max-height: 150px; min-height: 40px; line-height: 20px; box-sizing: border-box;
+            flex: 1; border: none; background: #e3e3e6; border-radius: 20px;
+            padding: 10px 16px; font-size: 17px; outline: none; font-family: inherit;
+            resize: none; max-height: 150px; min-height: 40px; box-sizing: border-box;
+            display: flex; align-items: center;
         }
 
         #send-btn {
-            background: #00a884; color: white; border: none; border-radius: 50%;
-            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            background: var(--accent-green); color: white; border: none; border-radius: 50%;
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: transform 0.15s;
+        }
+        #send-btn:active { transform: scale(0.9); }
+
+        /* --- Settings Modal --- */
+        #settings-modal {
+            position:fixed; top:0; left:0; right:0; bottom:0; display:none; 
+            align-items:center; justify-content:center; z-index:2000; 
+            background:rgba(0,0,0,0.25); backdrop-filter: blur(30px) saturate(180%);
+        }
+        .modal-content {
+            background: rgba(255,255,255,0.98); width: 290px; padding: 24px; 
+            border-radius: 20px; text-align: center;
         }
 
-        #emoji-bar {
-            position: fixed; bottom: calc(75px + var(--safe-bottom)); left: 10px; right: 10px;
-            background: #fff; border-radius: 15px; padding: 10px; display: none;
-            overflow-x: auto; white-space: nowrap; z-index: 1100; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
-        }
-        .emoji-item { font-size: 26px; margin: 0 10px; cursor: pointer; display: inline-block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <header>
-    <button class="header-btn" onclick="toggleSearch()">🔍</button>
-    <h1>Private Memo</h1>
-    <button class="header-btn" id="sync-status-btn" onclick="openSettings()">同步</button>
+    <button class="search-trigger" onclick="toggleSearch()">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    </button>
+    <h1 onclick="clearFilter()">Private Memo</h1>
 </header>
 
-<div id="search-container">
-    <input type="text" id="search-input" placeholder="搜索消息..." oninput="handleSearch()">
+<div id="search-wrapper">
+    <input type="text" id="search-input" oninput="handleSearch()">
 </div>
+
+<div id="tag-bar"></div>
 
 <div id="notes-container"></div>
 
-<div id="emoji-bar">
-    <span class="emoji-item" onclick="insertEmoji('📅')">📅</span>
-    <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
-    <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
-    <span class="emoji-item" onclick="insertEmoji('💡')">💡</span>
-    <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
-    <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
-    <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
-    <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
-</div>
-
 <div class="input-wrapper">
-    <button class="header-btn" style="font-size:26px; margin-top:0; min-height:auto" onclick="toggleEmoji()">😊</button>
-    <textarea id="note-input" rows="1" placeholder="输入记录..."></textarea>
+    <button class="sync-btn-mini" onclick="openSettings()">同步</button>
+    <textarea id="note-input" rows="1"></textarea>
     <button id="send-btn" onclick="addNote()">
-        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
     </button>
 </div>
 
-<div id="settings-modal" style="position:fixed; top:0; left:0; right:0; bottom:0; display:none; align-items:center; justify-content:center; z-index:2000; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
-    <div style="background:white; width:85%; max-width:320px; padding:25px; border-radius:20px; text-align:center;">
-        <h3>同步设置</h3>
-        <input type="password" id="github-token" placeholder="GitHub Token" style="width:100%; margin:10px 0; padding:12px; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;">
-        <input type="text" id="gist-id" placeholder="Gist ID" style="width:100%; margin:10px 0; padding:12px; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin:15px 0;">
-            <span style="font-size:14px; color: #54656f;">显示隐藏内容</span>
+<div id="settings-modal">
+    <div class="modal-content">
+        <h3 style="margin: 0 0 18px 0; font-size: 18px; font-weight: 700;">Settings</h3>
+        <input type="password" id="github-token">
+        <input type="text" id="gist-id">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:18px 0;">
+            <span style="font-size:14px; color: var(--text-secondary); font-weight: 500;">显示已隐藏内容</span>
             <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()" style="width:auto">
         </div>
-        <button onclick="saveSettings()" style="background:#00a884; color:white; border:none; padding:12px; border-radius:10px; width:100%; font-weight:600;">保存并拉取数据</button>
-        <button onclick="closeSettings()" style="background:none; border:none; color:#8696a0; margin-top:15px;">关闭</button>
+        <button onclick="saveSettings()" style="background:var(--accent-green); color:white; border:none; padding:12px; border-radius:10px; width:100%; font-weight:700; font-size:16px;">保存</button>
+        <button onclick="closeSettings()" style="background:none; border:none; color:var(--text-secondary); margin-top:15px; font-size:14px;">取消</button>
     </div>
-</div>
-
-<div id="image-viewer" onclick="this.style.display='none'" style="position:fixed; top:0; left:0; right:0; bottom:0; display:none; align-items:center; justify-content:center; z-index:3000; background:rgba(0,0,0,0.95);">
-    <img id="full-image" src="" style="max-width:95%; max-height:95%; border-radius:8px;">
 </div>
 
 <script>
     let notes = [];
+    let currentFilterTag = '';
     let config = {
         token: localStorage.getItem('gh_token') || '',
         gistId: localStorage.getItem('gh_gist_id') || '',
         showHidden: localStorage.getItem('show_hidden') === 'true'
     };
-    let isEmojiOpen = false;
     const container = document.getElementById('notes-container');
     const input = document.getElementById('note-input');
+    const searchWrapper = document.getElementById('search-wrapper');
+    const searchInput = document.getElementById('search-input');
+    const tagBar = document.getElementById('tag-bar');
 
     window.onload = function() {
         document.getElementById('show-hidden-switch').checked = config.showHidden;
-        input.addEventListener('input', function() {
-            this.style.height = 'auto';
-            this.style.height = (this.scrollHeight) + 'px';
+        input.addEventListener('input', function() { 
+            this.style.height = 'auto'; 
+            this.style.height = Math.min(this.scrollHeight, 150) + 'px'; 
         });
-        if (config.token && config.gistId) syncFromGist();
-        else openSettings();
+        if (config.token && config.gistId) syncFromGist(); else openSettings();
     };
 
     function getBeijingDate() {
-        const now = new Date();
-        const bjs = now.toLocaleString("en-US", {timeZone: "Asia/Shanghai"});
-        return new Date(bjs);
+        return new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Shanghai"}));
     }
 
-    function formatFullTime(isoString) {
+    function formatJournalTime(isoString) {
         const d = new Date(isoString);
         const pad = n => String(n).padStart(2, '0');
-        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${String(d.getFullYear()).slice(-2)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getMonth()+1)}/${pad(d.getDate())}/${d.getFullYear()}`;
     }
 
     function processContent(text) {
         let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const urlRegex = /(https?:\/\/[^\s]+)/g;
-        return safeText.replace(urlRegex, (url) => {
-            if (url.match(/\.(jpeg|jpg|gif|png|webp|bmp)($|\?)/i)) {
-                return `<img src="${url}" onclick="event.stopPropagation(); viewImage('${url}')">`;
-            } else {
-                return `<a href="${url}" target="_blank">${url}</a>`;
-            }
-        }).replace(/\n/g, '<br>');
+        safeText = safeText.replace(/(https?:\/\/[^\s]+)/g, (url) => {
+            if (url.match(/\.(jpeg|jpg|gif|png|webp|bmp)($|\?)/i)) return `<img src="${url}" onclick="window.open('${url}')">`;
+            return `<a href="${url}" target="_blank" class="hashtag">${url}</a>`;
+        });
+        return safeText.replace(/(#[^\s#]+)/g, `<span class="hashtag" onclick="filterByTag('$1')">$1</span>`);
     }
 
-    function renderNotes(filterText = '') {
+    function updateTagBar() {
+        const tags = new Set();
+        notes.forEach(n => { const found = n.content.match(/#[^\s#]+/g); if (found) found.forEach(t => tags.add(t)); });
+        tagBar.innerHTML = '';
+        if (tags.size === 0) { tagBar.style.display = 'none'; return; }
+        tagBar.style.display = 'flex';
+        tags.forEach(tag => {
+            const pill = document.createElement('div');
+            pill.className = `tag-pill ${currentFilterTag === tag ? 'active' : ''}`;
+            pill.innerText = tag;
+            pill.onclick = () => filterByTag(tag);
+            tagBar.appendChild(pill);
+        });
+    }
+
+    function renderNotes() {
         container.innerHTML = '';
+        const searchText = searchInput.value.toLowerCase();
+        let hiddenMatches = 0;
+
         const filtered = notes.filter(n => {
-            const matchesSearch = n.content.toLowerCase().includes(filterText.toLowerCase());
-            return matchesSearch && (config.showHidden || !n.isHidden);
+            const matchesTag = currentFilterTag ? n.content.includes(currentFilterTag) : true;
+            const matchesText = n.content.toLowerCase().includes(searchText);
+            const isVisible = config.showHidden || !n.isHidden;
+            if (matchesTag && matchesText && !isVisible) hiddenMatches++;
+            return matchesTag && matchesText && isVisible;
         });
 
         filtered.forEach(note => {
             const row = document.createElement('div');
             row.className = `note-row ${note.isHidden ? 'hidden-state' : ''}`;
             row.innerHTML = `
-                <div class="bubble">
-                    ${processContent(note.content)}
-                    <div class="meta-info">
-                        <span class="hide-btn" onclick="toggleHide(${note.id})">${note.isHidden ? '👁️' : '🚫'}</span>
-                        ${formatFullTime(note.timestamp)}
-                        <span class="check-mark">✓</span>
-                    </div>
+                <div class="timestamp-row">
+                    <span class="timestamp">${formatJournalTime(note.timestamp)}</span>
+                    <span class="hide-btn" onclick="toggleHide(${note.id})">×</span>
                 </div>
+                <div class="journal-content">${processContent(note.content)}</div>
             `;
             container.appendChild(row);
         });
-        scrollToBottom();
+
+        if (filtered.length === 0 && (currentFilterTag || searchText)) {
+            container.innerHTML = `<div class="empty-hint">${hiddenMatches > 0 ? '🔒 已隐藏匹配内容' : '无结果'}</div>`;
+        }
+        updateTagBar();
+        if (!currentFilterTag && !searchText) container.scrollTop = container.scrollHeight;
     }
 
+    function toggleSearch() {
+        const isVisible = searchWrapper.style.display === 'block';
+        searchWrapper.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible) searchInput.focus();
+        else { searchInput.value = ''; renderNotes(); }
+    }
+
+    function filterByTag(tag) { currentFilterTag = (currentFilterTag === tag) ? '' : tag; renderNotes(); }
+    function handleSearch() { renderNotes(); }
+    function clearFilter() { currentFilterTag = ''; searchInput.value = ''; renderNotes(); }
+
     async function syncFromGist() {
-        if (!config.token || !config.gistId) return;
-        const btn = document.getElementById('sync-status-btn');
-        btn.innerText = '读取中';
+        const syncBtn = document.querySelector('.sync-btn-mini');
+        syncBtn.innerText = '...';
         try {
             const res = await fetch(`https://api.github.com/gists/${config.gistId}`, {
                 headers: { 'Authorization': `token ${config.token}` }, cache: "no-store"
@@ -284,22 +299,21 @@
             const data = await res.json();
             notes = JSON.parse(data.files['notes.json'].content || '[]');
             renderNotes();
-            btn.innerText = '同步';
-        } catch (e) { btn.innerText = '错误'; }
+            syncBtn.innerText = '同步';
+        } catch (e) { syncBtn.innerText = 'ERR'; }
     }
 
     async function syncToGist() {
-        if (!config.token || !config.gistId) return;
-        const btn = document.getElementById('sync-status-btn');
-        btn.innerText = '更新中';
+        const syncBtn = document.querySelector('.sync-btn-mini');
+        syncBtn.innerText = '...';
         try {
             await fetch(`https://api.github.com/gists/${config.gistId}`, {
                 method: 'PATCH',
                 headers: { 'Authorization': `token ${config.token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ files: { 'notes.json': { content: JSON.stringify(notes) } } })
             });
-            btn.innerText = '同步';
-        } catch (e) { btn.innerText = '失败'; }
+            syncBtn.innerText = '同步';
+        } catch (e) { syncBtn.innerText = 'ERR'; }
     }
 
     function addNote() {
@@ -315,20 +329,12 @@
         if (n) { n.isHidden = !n.isHidden; renderNotes(); syncToGist(); }
     }
 
-    function toggleSearch() {
-        const box = document.getElementById('search-container');
-        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
-        if(box.style.display === 'block') document.getElementById('search-input').focus();
-    }
-
-    function handleSearch() { renderNotes(document.getElementById('search-input').value); }
-    function toggleEmoji() { isEmojiOpen = !isEmojiOpen; document.getElementById('emoji-bar').style.display = isEmojiOpen ? 'block' : 'none'; }
-    function insertEmoji(e) { input.value += e; input.focus(); }
-    function viewImage(url) { document.getElementById('full-image').src = url; document.getElementById('image-viewer').style.display = 'flex'; }
-    function scrollToBottom() { container.scrollTop = container.scrollHeight; }
     function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
     function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
-    function toggleShowHidden() { config.showHidden = document.getElementById('show-hidden-switch').checked; localStorage.setItem('show_hidden', config.showHidden); renderNotes(); }
+    function toggleShowHidden() { 
+        config.showHidden = document.getElementById('show-hidden-switch').checked; 
+        localStorage.setItem('show_hidden', config.showHidden); renderNotes(); 
+    }
     
     function saveSettings() {
         config.token = document.getElementById('github-token').value.trim();
