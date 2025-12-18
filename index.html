@@ -5,28 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Private Note</title>
+    <title>Private Memo LSZ</title>
     <style>
         :root {
             --bg-color: #e5ddd5;
             --bubble-me: #dcf8c6;
             --text-main: #303030;
             --timestamp-color: #8696a0;
-            --accent-green: #25d366; /* 绿色勾选颜色 */
+            --accent-green: #25d366;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
-        }
-
-        /* 核心修复：确保屏幕最顶部永远有一层纯白背景覆盖 */
-        body::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: calc(100px + var(--safe-top)); /* 足够覆盖header和搜索栏 */
-            background: #ffffff;
-            z-index: 50; /* 低于header但高于背景 */
         }
 
         body {
@@ -40,32 +28,42 @@
             overflow: hidden;
         }
 
-        /* --- Header --- */
+        /* --- Header: 纯白填充 1区域和2区域融合 --- */
         header {
             background: #ffffff;
             position: relative;
-            padding-top: calc(30px + var(--safe-top)); 
-            padding-bottom: 12px;
-            padding-left: 20px;
-            padding-right: 20px;
+            /* 适配状态栏，让白色自动填充至屏幕最顶部 */
+            padding-top: var(--safe-top); 
+            padding-bottom: 10px;
+            padding-left: 15px;
+            padding-right: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        h1 { font-size: 18px; font-weight: 700; margin: 0; color: #41525d; flex: 1; text-align: center; }
-        .header-btn { font-size: 18px; color: #54656f; background: none; border: none; cursor: pointer; min-width: 40px; }
+        /* 标题下移确保不重叠灵动岛，同时不占据过多空间 */
+        h1 { 
+            font-size: 17px; 
+            font-weight: 700; 
+            margin: 0; 
+            margin-top: 10px; /* 轻微下移避开灵动岛 */
+            color: #41525d; 
+            flex: 1; 
+            text-align: center; 
+        }
 
-        /* --- Search: 同样纯白背景以消除色差 --- */
+        .header-btn { font-size: 18px; color: #54656f; background: none; border: none; cursor: pointer; min-width: 40px; margin-top: 10px; }
+
+        /* --- Search Container: 点击时也保持纯白 --- */
         #search-container {
             background: #ffffff; 
-            padding: 0px 15px 10px 15px; 
+            padding: 5px 15px 10px 15px; 
             display: none; 
-            position: relative;
             z-index: 90;
-            animation: slideDown 0.2s ease;
-            border-bottom: 0.5px solid #f2f2f2;
+            border-bottom: 0.5px solid #eee;
         }
         #search-input { 
             width: 100%; background: #f0f2f5; border: none; border-radius: 10px; 
@@ -76,12 +74,11 @@
         #notes-container {
             flex: 1;
             overflow-y: auto;
-            padding: 15px;
+            padding: 10px 15px;
             padding-bottom: 120px; 
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            z-index: 10; /* 低于顶部的白色图层 */
+            gap: 8px;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -94,10 +91,10 @@
             border-radius: 10px 0px 10px 10px;
             max-width: 85%;
             position: relative;
-            box-shadow: 0 1px 0.5px rgba(0,0,0,0.15);
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.12);
             word-wrap: break-word;
             font-size: 16px;
-            line-height: 1.5;
+            line-height: 1.45;
         }
 
         .bubble img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
@@ -105,12 +102,11 @@
 
         .note-row.hidden-state .bubble { background-color: #f1f1f1; color: #999; border: 1px dashed #ccc; box-shadow: none; }
 
-        /* Meta & Tick Mark */
         .meta-info {
             display: flex; justify-content: flex-end; align-items: center;
             margin-top: 4px; font-size: 11px; color: var(--timestamp-color); gap: 4px;
         }
-        .check-mark { color: var(--accent-green); font-weight: bold; font-size: 14px; margin-left: 2px; }
+        .check-mark { color: var(--accent-green); font-weight: bold; font-size: 14px; }
         .hide-btn { margin-right: 5px; opacity: 0.5; }
 
         /* --- Input Area --- */
@@ -140,7 +136,6 @@
         }
         .emoji-item { font-size: 26px; margin: 0 10px; cursor: pointer; display: inline-block; }
 
-        /* Modals & Viewer */
         #settings-modal, #image-viewer {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             display: none; align-items: center; justify-content: center; z-index: 500;
@@ -152,14 +147,13 @@
         .btn-primary { background: #00a884; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: 600; margin-top: 10px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <header>
     <button class="header-btn" onclick="toggleSearch()">🔍</button>
-    <h1>Private Note</h1>
+    <h1>Private Memo LSZ</h1>
     <button class="header-btn" id="sync-status-btn" onclick="openSettings()">同步</button>
 </header>
 
@@ -181,7 +175,7 @@
 </div>
 
 <div class="input-wrapper">
-    <button class="header-btn" style="font-size:26px" onclick="toggleEmoji()">😊</button>
+    <button class="header-btn" style="font-size:26px; margin-top:0" onclick="toggleEmoji()">😊</button>
     <textarea id="note-input" rows="1" placeholder="输入记录..."></textarea>
     <button id="send-btn" onclick="addNote()">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
