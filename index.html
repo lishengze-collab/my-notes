@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Private Memo LSZ</title>
+    <title>Private Memo</title>
     <style>
         :root {
             --bg-color: #e5ddd5;
@@ -16,6 +16,9 @@
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
+
+        /* 确保1区域和2区域背景色完全一致为纯白 */
+        html { background-color: #ffffff; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
@@ -28,57 +31,68 @@
             overflow: hidden;
         }
 
-        /* --- Header: 纯白填充 1区域和2区域融合 --- */
+        /* --- Header: 适配灵动岛并确保按钮可点 --- */
         header {
             background: #ffffff;
             position: relative;
-            /* 适配状态栏，让白色自动填充至屏幕最顶部 */
             padding-top: var(--safe-top); 
-            padding-bottom: 10px;
+            padding-bottom: 12px;
             padding-left: 15px;
             padding-right: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 100;
+            z-index: 999; 
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
 
-        /* 标题下移确保不重叠灵动岛，同时不占据过多空间 */
         h1 { 
             font-size: 17px; 
             font-weight: 700; 
             margin: 0; 
-            margin-top: 10px; /* 轻微下移避开灵动岛 */
+            margin-top: 22px; /* 避开灵动岛黑区 */
             color: #41525d; 
             flex: 1; 
             text-align: center; 
         }
 
-        .header-btn { font-size: 18px; color: #54656f; background: none; border: none; cursor: pointer; min-width: 40px; margin-top: 10px; }
+        .header-btn { 
+            font-size: 18px; 
+            color: #54656f; 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            min-width: 44px; 
+            min-height: 44px;
+            margin-top: 18px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        /* --- Search Container: 点击时也保持纯白 --- */
+        /* --- Search Container --- */
         #search-container {
             background: #ffffff; 
-            padding: 5px 15px 10px 15px; 
+            padding: 5px 15px 12px 15px; 
             display: none; 
-            z-index: 90;
+            position: relative;
+            z-index: 998;
             border-bottom: 0.5px solid #eee;
         }
         #search-input { 
             width: 100%; background: #f0f2f5; border: none; border-radius: 10px; 
-            padding: 8px 12px; font-size: 14px; outline: none; box-sizing: border-box;
+            padding: 10px 12px; font-size: 14px; outline: none; box-sizing: border-box;
         }
 
         /* --- Notes List --- */
         #notes-container {
             flex: 1;
             overflow-y: auto;
-            padding: 10px 15px;
+            padding: 12px 15px;
             padding-bottom: 120px; 
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 10px;
             -webkit-overflow-scrolling: touch;
         }
 
@@ -94,12 +108,11 @@
             box-shadow: 0 1px 0.5px rgba(0,0,0,0.12);
             word-wrap: break-word;
             font-size: 16px;
-            line-height: 1.45;
+            line-height: 1.5;
         }
 
         .bubble img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
         .bubble a { color: #0645ad; text-decoration: underline; }
-
         .note-row.hidden-state .bubble { background-color: #f1f1f1; color: #999; border: 1px dashed #ccc; box-shadow: none; }
 
         .meta-info {
@@ -114,7 +127,7 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             background: #f0f2f5; padding: 10px;
             padding-bottom: calc(15px + var(--safe-bottom));
-            display: flex; align-items: flex-end; gap: 10px; z-index: 200;
+            display: flex; align-items: flex-end; gap: 10px; z-index: 1000;
         }
 
         #note-input {
@@ -130,21 +143,11 @@
         }
 
         #emoji-bar {
-            position: fixed; bottom: calc(70px + var(--safe-bottom)); left: 10px; right: 10px;
+            position: fixed; bottom: calc(75px + var(--safe-bottom)); left: 10px; right: 10px;
             background: #fff; border-radius: 15px; padding: 10px; display: none;
-            overflow-x: auto; white-space: nowrap; z-index: 190; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto; white-space: nowrap; z-index: 1100; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
         }
         .emoji-item { font-size: 26px; margin: 0 10px; cursor: pointer; display: inline-block; }
-
-        #settings-modal, #image-viewer {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            display: none; align-items: center; justify-content: center; z-index: 500;
-        }
-        #settings-modal { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        #image-viewer { background: rgba(0,0,0,0.95); }
-        .modal-content { background: white; width: 85%; max-width: 320px; padding: 25px; border-radius: 20px; text-align: center; }
-        .modal-content input { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
-        .btn-primary { background: #00a884; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: 600; margin-top: 10px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
@@ -153,7 +156,7 @@
 
 <header>
     <button class="header-btn" onclick="toggleSearch()">🔍</button>
-    <h1>Private Memo LSZ</h1>
+    <h1>Private Memo</h1>
     <button class="header-btn" id="sync-status-btn" onclick="openSettings()">同步</button>
 </header>
 
@@ -175,29 +178,29 @@
 </div>
 
 <div class="input-wrapper">
-    <button class="header-btn" style="font-size:26px; margin-top:0" onclick="toggleEmoji()">😊</button>
+    <button class="header-btn" style="font-size:26px; margin-top:0; min-height:auto" onclick="toggleEmoji()">😊</button>
     <textarea id="note-input" rows="1" placeholder="输入记录..."></textarea>
     <button id="send-btn" onclick="addNote()">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
     </button>
 </div>
 
-<div id="settings-modal">
-    <div class="modal-content">
+<div id="settings-modal" style="position:fixed; top:0; left:0; right:0; bottom:0; display:none; align-items:center; justify-content:center; z-index:2000; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);">
+    <div style="background:white; width:85%; max-width:320px; padding:25px; border-radius:20px; text-align:center;">
         <h3>同步设置</h3>
-        <input type="password" id="github-token" placeholder="GitHub Token">
-        <input type="text" id="gist-id" placeholder="Gist ID">
+        <input type="password" id="github-token" placeholder="GitHub Token" style="width:100%; margin:10px 0; padding:12px; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;">
+        <input type="text" id="gist-id" placeholder="Gist ID" style="width:100%; margin:10px 0; padding:12px; border:1px solid #ddd; border-radius:10px; box-sizing:border-box;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin:15px 0;">
             <span style="font-size:14px; color: #54656f;">显示隐藏内容</span>
             <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()" style="width:auto">
         </div>
-        <button class="btn-primary" onclick="saveSettings()">保存并拉取数据</button>
+        <button onclick="saveSettings()" style="background:#00a884; color:white; border:none; padding:12px; border-radius:10px; width:100%; font-weight:600;">保存并拉取数据</button>
         <button onclick="closeSettings()" style="background:none; border:none; color:#8696a0; margin-top:15px;">关闭</button>
     </div>
 </div>
 
-<div id="image-viewer" onclick="this.style.display='none'">
-    <img id="full-image" src="">
+<div id="image-viewer" onclick="this.style.display='none'" style="position:fixed; top:0; left:0; right:0; bottom:0; display:none; align-items:center; justify-content:center; z-index:3000; background:rgba(0,0,0,0.95);">
+    <img id="full-image" src="" style="max-width:95%; max-height:95%; border-radius:8px;">
 </div>
 
 <script>
