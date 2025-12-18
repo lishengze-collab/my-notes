@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Private Memo PN-3.1.8</title>
+    <title>Private Memo PN-3.1.9 Final</title>
     <style>
         :root {
             --bg-main: #f9f9f9; 
@@ -26,38 +26,33 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* --- Header: 解决状态栏占用问题 --- */
+        /* --- Header: 适配 iPhone 17 灵动岛下移 --- */
         header {
             background: var(--bg-main);
             position: relative;
-            /* 关键：增加顶部安全区补偿，防止遮挡 */
             padding-top: calc(var(--safe-top) + 12px); 
             padding-left: 18px; padding-right: 18px;
             display: flex; justify-content: space-between; align-items: center; z-index: 1001;
             min-height: 50px;
         }
 
-        h1 { 
-            font-size: 15px; font-weight: 600; color: var(--text-secondary); 
-            margin: 0; letter-spacing: -0.3px; cursor: pointer;
-        }
+        h1 { font-size: 15px; font-weight: 600; color: var(--text-secondary); margin: 0; letter-spacing: -0.3px; cursor: pointer; }
 
         .search-trigger {
             background: none; border: none; padding: 8px 0; color: var(--accent-green);
             cursor: pointer; display: flex; align-items: center;
         }
 
-        /* --- 搜索框区域: 物理下移 --- */
+        /* --- 搜索框下移 --- */
         #search-wrapper {
             background: var(--bg-main);
-            padding: 8px 16px 12px 16px; /* 增加上内边距 */
+            padding: 8px 16px 12px 16px;
             display: none; z-index: 1000;
             animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #search-input { 
             width: 100%; background: #e3e3e6; border: none; border-radius: 12px; 
             padding: 10px 14px; font-size: 17px; outline: none; box-sizing: border-box;
-            -webkit-appearance: none;
         }
 
         /* --- 动态标签栏 --- */
@@ -76,7 +71,7 @@
 
         /* --- Journal List --- */
         #notes-container {
-            flex: 1; overflow-y: auto; padding: 10px 20px 180px 20px;
+            flex: 1; overflow-y: auto; padding: 10px 20px 220px 20px;
             display: flex; flex-direction: column; -webkit-overflow-scrolling: touch;
         }
 
@@ -93,37 +88,48 @@
         .journal-content img { max-width: 100%; border-radius: 14px; margin-top: 12px; display: block; }
         .hashtag { color: var(--accent-blue); font-weight: 600; cursor: pointer; }
 
-        .note-row.hidden-state { opacity: 0.2; filter: grayscale(1) blur(0.5px); }
+        .note-row.hidden-state { opacity: 0.2; filter: blur(0.5px); }
+        .empty-hint { text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 80px; }
 
-        /* --- Input Area --- */
-        .input-wrapper {
+        /* --- Footer & Toolbar --- */
+        .footer-wrapper {
             position: fixed; bottom: 0; left: 0; right: 0; background: rgba(249, 249, 249, 0.96); 
             backdrop-filter: blur(25px) saturate(190%);
-            padding: 14px 18px calc(14px + var(--safe-bottom)) 18px;
-            display: flex; align-items: center; gap: 12px; z-index: 1002;
-            border-top: 0.5px solid var(--line-color);
+            border-top: 0.5px solid var(--line-color); z-index: 1002;
+            padding-bottom: var(--safe-bottom);
+        }
+        
+        .toolbar {
+            display: flex; gap: 24px; padding: 8px 18px 4px 18px;
+        }
+        .tool-btn {
+            background: none; border: none; color: var(--accent-green); font-size: 16px; 
+            font-weight: 700; padding: 4px; cursor: pointer;
+        }
+
+        .input-wrapper {
+            padding: 8px 18px 14px 18px;
+            display: flex; align-items: center; gap: 12px;
         }
 
         .sync-btn-mini {
             font-size: 13px; font-weight: 700; color: #ffffff;
             background: var(--accent-green); border: none;
             padding: 7px 14px; border-radius: 8px; white-space: nowrap;
-            cursor: pointer;
         }
 
         #note-input {
             flex: 1; border: none; background: #e3e3e6; border-radius: 20px;
             padding: 10px 16px; font-size: 17px; outline: none; font-family: inherit;
-            resize: none; max-height: 150px; min-height: 40px; box-sizing: border-box;
+            resize: none; max-height: 120px; min-height: 40px; box-sizing: border-box;
         }
 
         #send-btn {
             background: var(--accent-green); color: white; border: none; border-radius: 50%;
             width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
         }
 
-        /* --- Settings Modal: 优化为极致圆润 --- */
+        /* --- Settings Modal --- */
         #settings-modal {
             position:fixed; top:0; left:0; right:0; bottom:0; display:none; 
             align-items:center; justify-content:center; z-index:2000; 
@@ -132,22 +138,17 @@
         .modal-content {
             background: #ffffff; width: 300px; padding: 28px 24px; 
             border-radius: 28px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+            transform: scale(0.9); transition: transform 0.2s;
         }
         #settings-modal.active .modal-content { transform: scale(1); }
-        
-        .modal-content h3 { margin: 0 0 20px 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
-        
-        .modal-content input[type="text"], .modal-content input[type="password"] {
+        .modal-content input {
             width: 100%; margin: 6px 0 12px 0; padding: 12px 16px; 
             border: 1px solid #efefef; background: #f5f5f7;
             border-radius: 14px; box-sizing: border-box; font-size: 15px; outline: none;
         }
-        
-        .modal-content .save-btn {
+        .save-btn {
             background: var(--accent-green); color: white; border: none; 
-            padding: 14px; border-radius: 14px; width: 100%; 
-            font-weight: 700; font-size: 16px; margin-top: 10px;
+            padding: 14px; border-radius: 14px; width: 100%; font-weight: 700;
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -171,12 +172,19 @@
 
 <div id="notes-container"></div>
 
-<div class="input-wrapper">
-    <button class="sync-btn-mini" onclick="openSettings()">同步</button>
-    <textarea id="note-input" rows="1"></textarea>
-    <button id="send-btn" onclick="addNote()">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
-    </button>
+<div class="footer-wrapper">
+    <div class="toolbar">
+        <button class="tool-btn" onclick="formatText('bold')">B</button>
+        <button class="tool-btn" onclick="formatText('italic')" style="font-style: italic;">I</button>
+        <button class="tool-btn" onclick="formatText('color')">🎨</button>
+    </div>
+    <div class="input-wrapper">
+        <button class="sync-btn-mini" onclick="openSettings()">同步</button>
+        <textarea id="note-input" rows="1"></textarea>
+        <button id="send-btn" onclick="addNote()">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+        </button>
+    </div>
 </div>
 
 <div id="settings-modal">
@@ -189,13 +197,15 @@
             <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()" style="width:20px; height:20px;">
         </div>
         <button class="save-btn" onclick="saveSettings()">保存</button>
-        <button onclick="closeSettings()" style="background:none; border:none; color:var(--text-secondary); margin-top:16px; font-size:14px; font-weight:500;">取消</button>
+        <button onclick="closeSettings()" style="background:none; border:none; color:var(--text-secondary); margin-top:16px; font-size:14px;">取消</button>
     </div>
 </div>
 
 <script>
     let notes = [];
     let currentFilterTag = '';
+    let colorList = ['red', 'blue', 'green', 'orange', 'purple'];
+    let colorIdx = 0;
     let config = {
         token: localStorage.getItem('gh_token') || '',
         gistId: localStorage.getItem('gh_gist_id') || '',
@@ -212,26 +222,41 @@
         document.getElementById('show-hidden-switch').checked = config.showHidden;
         input.addEventListener('input', function() { 
             this.style.height = 'auto'; 
-            this.style.height = Math.min(this.scrollHeight, 150) + 'px'; 
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px'; 
         });
         if (config.token && config.gistId) syncFromGist(); else openSettings();
     };
 
-    function getBeijingDate() { return new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Shanghai"})); }
-    
-    function formatJournalTime(isoString) {
-        const d = new Date(isoString);
-        const pad = n => String(n).padStart(2, '0');
-        return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getMonth()+1)}/${pad(d.getDate())}/${d.getFullYear()}`;
+    function formatText(type) {
+        const start = input.selectionStart;
+        const end = input.selectionEnd;
+        const text = input.value;
+        const selected = text.substring(start, end);
+        let replacement = "";
+        if(type === 'bold') replacement = `**${selected}**`;
+        else if(type === 'italic') replacement = `*${selected}*`;
+        else if(type === 'color') {
+            replacement = `<c=${colorList[colorIdx % colorList.length]}>${selected}</c>`;
+            colorIdx++;
+        }
+        input.value = text.substring(0, start) + replacement + text.substring(end);
+        input.focus();
     }
 
     function processContent(text) {
-        let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        safeText = safeText.replace(/(https?:\/\/[^\s]+)/g, (url) => {
+        let res = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        // 渲染 粗体/斜体
+        res = res.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+        res = res.replace(/\*(.*?)\*/g, '<i>$1</i>');
+        // 渲染 颜色标签 (还原转义)
+        res = res.replace(/&lt;c=(.*?)&gt;(.*?)&lt;\/c&gt;/g, '<span style="color:$1">$2</span>');
+        // 渲染 图片与链接
+        res = res.replace(/(https?:\/\/[^\s]+)/g, (url) => {
             if (url.match(/\.(jpeg|jpg|gif|png|webp|bmp)($|\?)/i)) return `<img src="${url}" onclick="window.open('${url}')">`;
             return `<a href="${url}" target="_blank" class="hashtag">${url}</a>`;
         });
-        return safeText.replace(/(#[^\s#]+)/g, `<span class="hashtag" onclick="filterByTag('$1')">$1</span>`);
+        // Hashtag
+        return res.replace(/(#[^\s#]+)/g, `<span class="hashtag" onclick="filterByTag('$1')">$1</span>`);
     }
 
     function updateTagBar() {
@@ -263,56 +288,40 @@
         filtered.forEach(note => {
             const row = document.createElement('div');
             row.className = `note-row ${note.isHidden ? 'hidden-state' : ''}`;
-            row.innerHTML = `<div class="timestamp-row"><span class="timestamp">${formatJournalTime(note.timestamp)}</span><span class="hide-btn" onclick="toggleHide(${note.id})">×</span></div><div class="journal-content">${processContent(note.content)}</div>`;
+            row.innerHTML = `<div class="timestamp-row"><span class="timestamp">${new Date(note.timestamp).toLocaleString()}</span><span class="hide-btn" onclick="toggleHide(${note.id})">×</span></div><div class="journal-content">${processContent(note.content)}</div>`;
             container.appendChild(row);
         });
         if (filtered.length === 0 && (currentFilterTag || searchText)) {
-            container.innerHTML = `<div class="empty-hint">${hiddenMatches > 0 ? '🔒 已隐藏符合条件的内容' : '无结果'}</div>`;
+            container.innerHTML = `<div class="empty-hint">${hiddenMatches > 0 ? '🔒 已隐藏匹配内容' : '无结果'}</div>`;
         }
         updateTagBar();
         if (!currentFilterTag && !searchText) container.scrollTop = container.scrollHeight;
     }
 
-    function toggleSearch() {
-        const isVisible = searchWrapper.style.display === 'block';
-        searchWrapper.style.display = isVisible ? 'none' : 'block';
-        if (!isVisible) searchInput.focus();
-        else { searchInput.value = ''; renderNotes(); }
-    }
-
-    function filterByTag(tag) { currentFilterTag = (currentFilterTag === tag) ? '' : tag; renderNotes(); }
-    function handleSearch() { renderNotes(); }
-    function clearFilter() { currentFilterTag = ''; searchInput.value = ''; renderNotes(); }
-
     async function syncFromGist() {
-        const syncBtn = document.querySelector('.sync-btn-mini');
-        syncBtn.innerText = '...';
+        const btn = document.querySelector('.sync-btn-mini'); btn.innerText = '...';
         try {
             const res = await fetch(`https://api.github.com/gists/${config.gistId}`, { headers: { 'Authorization': `token ${config.token}` }, cache: "no-store" });
             const data = await res.json();
             notes = JSON.parse(data.files['notes.json'].content || '[]');
-            renderNotes();
-            syncBtn.innerText = '同步';
-        } catch (e) { syncBtn.innerText = 'ERR'; }
+            renderNotes(); btn.innerText = '同步';
+        } catch (e) { btn.innerText = 'ERR'; }
     }
 
     async function syncToGist() {
-        const syncBtn = document.querySelector('.sync-btn-mini');
-        syncBtn.innerText = '...';
+        const btn = document.querySelector('.sync-btn-mini'); btn.innerText = '...';
         try {
             await fetch(`https://api.github.com/gists/${config.gistId}`, {
-                method: 'PATCH',
-                headers: { 'Authorization': `token ${config.token}`, 'Content-Type': 'application/json' },
+                method: 'PATCH', headers: { 'Authorization': `token ${config.token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ files: { 'notes.json': { content: JSON.stringify(notes) } } })
             });
-            syncBtn.innerText = '同步';
-        } catch (e) { syncBtn.innerText = 'ERR'; }
+            btn.innerText = '同步';
+        } catch (e) { btn.innerText = 'ERR'; }
     }
 
     function addNote() {
-        const text = input.value.trim();
-        if (!text) return;
-        notes.push({ id: Date.now(), content: text, timestamp: getBeijingDate().toISOString(), isHidden: false });
+        const text = input.value.trim(); if (!text) return;
+        notes.push({ id: Date.now(), content: text, timestamp: new Date().toISOString(), isHidden: false });
         input.value = ''; input.style.height = 'auto';
         renderNotes(); syncToGist();
     }
@@ -322,24 +331,24 @@
         if (n) { n.isHidden = !n.isHidden; renderNotes(); syncToGist(); }
     }
 
-    function openSettings() { 
-        modal.style.display = 'flex'; 
-        setTimeout(() => modal.classList.add('active'), 10);
+    function toggleSearch() {
+        const isVisible = searchWrapper.style.display === 'block';
+        searchWrapper.style.display = isVisible ? 'none' : 'block';
+        if (!isVisible) searchInput.focus();
     }
-    function closeSettings() { 
-        modal.classList.remove('active');
-        setTimeout(() => modal.style.display = 'none', 200);
-    }
+
+    function filterByTag(tag) { currentFilterTag = (currentFilterTag === tag) ? '' : tag; renderNotes(); }
+    function handleSearch() { renderNotes(); }
+    function clearFilter() { currentFilterTag = ''; searchInput.value = ''; renderNotes(); }
+    function openSettings() { modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10); }
+    function closeSettings() { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 200); }
     function toggleShowHidden() { config.showHidden = document.getElementById('show-hidden-switch').checked; localStorage.setItem('show_hidden', config.showHidden); renderNotes(); }
-    
     function saveSettings() {
         config.token = document.getElementById('github-token').value.trim();
         config.gistId = document.getElementById('gist-id').value.trim();
-        localStorage.setItem('gh_token', config.token);
-        localStorage.setItem('gh_gist_id', config.gistId);
+        localStorage.setItem('gh_token', config.token); localStorage.setItem('gh_gist_id', config.gistId);
         closeSettings(); syncFromGist();
     }
-
     input.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); addNote(); }});
 </script>
 </body>
