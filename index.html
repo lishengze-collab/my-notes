@@ -8,11 +8,11 @@
     <title>Private Note</title>
     <style>
         :root {
-            --bg-color: #e5ddd5; /* WhatsApp 经典背景色 */
-            --bubble-me: #dcf8c6; /* WhatsApp 绿色气泡 */
+            --bg-color: #e5ddd5;
+            --bubble-me: #dcf8c6;
             --text-main: #303030;
             --timestamp-color: #8696a0;
-            --accent-blue: #53bdeb; /* 送达勾选的蓝色 */
+            --accent-blue: #53bdeb;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -28,11 +28,12 @@
             overflow: hidden;
         }
 
-        /* --- Header: 解决重叠 --- */
+        /* --- Header: 深度下移以避开灵动岛 --- */
         header {
             background: #f0f2f5;
-            padding-top: calc(15px + var(--safe-top)); /* 增加偏移量解决状态栏重叠 */
-            padding-bottom: 12px;
+            /* 28px 为基础偏移，加上安全区域高度 */
+            padding-top: calc(28px + var(--safe-top)); 
+            padding-bottom: 15px;
             padding-left: 15px;
             padding-right: 15px;
             display: flex;
@@ -42,25 +43,16 @@
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
 
-        h1 { font-size: 18px; font-weight: 600; margin: 0; color: #41525d; }
-        .header-btn { font-size: 16px; color: #54656f; background: none; border: none; cursor: pointer; }
+        h1 { font-size: 18px; font-weight: 700; margin: 0; color: #41525d; flex: 1; text-align: center; }
+        .header-btn { font-size: 16px; color: #54656f; background: none; border: none; cursor: pointer; min-width: 40px; }
 
         /* --- Search --- */
         #search-container {
-            background: #fff;
-            padding: 8px 15px;
-            display: none;
-            animation: slideDown 0.2s ease;
+            background: #fff; padding: 8px 15px; display: none; animation: slideDown 0.2s ease;
         }
         #search-input { 
-            width: 100%; 
-            background: #f0f2f5; 
-            border: none; 
-            border-radius: 8px; 
-            padding: 8px 12px; 
-            font-size: 14px; 
-            outline: none;
-            box-sizing: border-box;
+            width: 100%; background: #f0f2f5; border: none; border-radius: 8px; 
+            padding: 8px 12px; font-size: 14px; outline: none; box-sizing: border-box;
         }
 
         /* --- Notes List --- */
@@ -68,124 +60,77 @@
             flex: 1;
             overflow-y: auto;
             padding: 15px;
-            padding-bottom: 100px; 
+            padding-bottom: 120px; 
             display: flex;
             flex-direction: column;
-            gap: 8px; /* 紧凑布局 */
+            gap: 10px;
             -webkit-overflow-scrolling: touch;
         }
 
         .note-row { display: flex; justify-content: flex-end; width: 100%; animation: fadeIn 0.2s ease; }
         
-        /* 气泡样式优化：模仿 WhatsApp */
         .bubble {
             background-color: var(--bubble-me);
             color: var(--text-main);
             padding: 8px 12px 6px 12px;
-            border-radius: 10px 0px 10px 10px; /* 经典的右上尖角 */
+            border-radius: 10px 0px 10px 10px;
             max-width: 85%;
             position: relative;
-            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.15);
             word-wrap: break-word;
             font-size: 16px;
-            line-height: 1.45;
+            line-height: 1.5;
         }
 
         .bubble img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
         .bubble a { color: #0645ad; text-decoration: underline; }
 
-        /* 隐藏态样式 */
         .note-row.hidden-state .bubble { background-color: #f1f1f1; color: #999; border: 1px dashed #ccc; box-shadow: none; }
 
-        /* 时间戳 + 蓝勾样式 */
+        /* Meta info & Double check */
         .meta-info {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin-top: 4px;
-            font-size: 11px;
-            color: var(--timestamp-color);
-            gap: 4px;
+            display: flex; justify-content: flex-end; align-items: center;
+            margin-top: 4px; font-size: 11px; color: var(--timestamp-color); gap: 4px;
         }
-        .check-mark {
-            color: var(--accent-blue);
-            font-weight: bold;
-            font-size: 12px;
-            display: inline-flex;
-        }
+        .check-mark { color: var(--accent-blue); font-weight: bold; font-size: 12px; }
         .hide-btn { margin-right: 5px; opacity: 0.5; }
 
-        /* --- Input Area: 收窄适配 --- */
+        /* --- Input Area --- */
         .input-wrapper {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: #f0f2f5;
-            padding: 10px 10px; /* 侧边留空 */
-            padding-bottom: calc(10px + var(--safe-bottom));
-            display: flex;
-            align-items: flex-end;
-            gap: 8px;
-            z-index: 200;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #f0f2f5; padding: 10px;
+            padding-bottom: calc(15px + var(--safe-bottom));
+            display: flex; align-items: flex-end; gap: 10px; z-index: 200;
         }
 
         #note-input {
-            flex: 1;
-            border: none;
-            background: white;
-            border-radius: 20px;
-            padding: 10px 15px;
-            font-size: 16px;
-            outline: none;
-            font-family: inherit;
-            resize: none;
-            max-height: 120px;
-            min-height: 40px;
-            line-height: 20px;
-            box-sizing: border-box; /* 核心修复：确保宽度包含 padding */
+            flex: 1; border: none; background: white; border-radius: 20px;
+            padding: 10px 15px; font-size: 16px; outline: none; font-family: inherit;
+            resize: none; max-height: 150px; min-height: 40px; line-height: 20px; box-sizing: border-box;
         }
 
         #send-btn {
-            background: #00a884; /* WhatsApp 绿色发送按钮 */
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 42px;
-            height: 42px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+            background: #00a884; color: white; border: none; border-radius: 50%;
+            width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
 
         #emoji-bar {
-            position: fixed; bottom: calc(65px + var(--safe-bottom)); left: 10px; right: 10px;
-            background: #fff; border-radius: 15px; padding: 10px;
-            display: none; overflow-x: auto; white-space: nowrap; z-index: 190;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+            position: fixed; bottom: calc(70px + var(--safe-bottom)); left: 10px; right: 10px;
+            background: #fff; border-radius: 15px; padding: 10px; display: none;
+            overflow-x: auto; white-space: nowrap; z-index: 190; box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
         }
-        .emoji-item { font-size: 24px; margin: 0 8px; cursor: pointer; }
+        .emoji-item { font-size: 26px; margin: 0 10px; cursor: pointer; display: inline-block; }
 
-        /* --- Image Viewer --- */
-        #image-viewer { 
+        /* Modal & Viewer */
+        #settings-modal, #image-viewer {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 500;
+            display: none; align-items: center; justify-content: center; z-index: 500;
         }
-        #image-viewer img { max-width: 95%; max-height: 90%; object-fit: contain; }
-
-        /* --- Settings Modal --- */
-        #settings-modal {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 400;
-            backdrop-filter: blur(4px);
-        }
-        .modal-content {
-            background: white; width: 85%; max-width: 320px;
-            padding: 25px; border-radius: 20px; text-align: center;
-        }
-        .modal-content input { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        #settings-modal { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
+        #image-viewer { background: rgba(0,0,0,0.9); }
+        .modal-content { background: white; width: 85%; max-width: 320px; padding: 25px; border-radius: 20px; text-align: center; }
+        .modal-content input { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
         .btn-primary { background: #00a884; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: 600; margin-top: 10px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
@@ -211,7 +156,6 @@
     <span class="emoji-item" onclick="insertEmoji('✅')">✅</span>
     <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
     <span class="emoji-item" onclick="insertEmoji('💡')">💡</span>
-    <span class="emoji-item" onclick="insertEmoji('⚠️')">⚠️</span>
     <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
     <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
     <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
@@ -219,7 +163,7 @@
 </div>
 
 <div class="input-wrapper">
-    <button class="header-btn" style="font-size:24px" onclick="toggleEmoji()">😊</button>
+    <button class="header-btn" style="font-size:26px" onclick="toggleEmoji()">😊</button>
     <textarea id="note-input" rows="1" placeholder="输入记录..."></textarea>
     <button id="send-btn" onclick="addNote()">
         <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
@@ -232,10 +176,10 @@
         <input type="password" id="github-token" placeholder="GitHub Token">
         <input type="text" id="gist-id" placeholder="Gist ID">
         <div style="display:flex; justify-content:space-between; align-items:center; margin:15px 0;">
-            <span style="font-size:14px">显示隐藏内容</span>
+            <span style="font-size:14px; color: #54656f;">显示隐藏内容</span>
             <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()" style="width:auto">
         </div>
-        <button class="btn-primary" onclick="saveSettings()">保存并同步数据</button>
+        <button class="btn-primary" onclick="saveSettings()">保存并拉取数据</button>
         <button onclick="closeSettings()" style="background:none; border:none; color:#8696a0; margin-top:15px;">关闭</button>
     </div>
 </div>
@@ -267,21 +211,21 @@
 
     function getBeijingDate() {
         const now = new Date();
-        const beijingString = now.toLocaleString("en-US", {timeZone: "Asia/Shanghai"});
-        return new Date(beijingString);
+        const bjs = now.toLocaleString("en-US", {timeZone: "Asia/Shanghai"});
+        return new Date(bjs);
     }
 
     function formatFullTime(isoString) {
-        const date = new Date(isoString);
+        const d = new Date(isoString);
         const pad = n => String(n).padStart(2, '0');
-        return `${pad(date.getDate())}/${pad(date.getMonth()+1)}/${String(date.getFullYear()).slice(-2)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+        return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${String(d.getFullYear()).slice(-2)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     }
 
     function processContent(text) {
         let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
         const urlRegex = /(https?:\/\/[^\s]+)/g;
         return safeText.replace(urlRegex, (url) => {
-            if (url.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i)) {
+            if (url.match(/\.(jpeg|jpg|gif|png|webp|bmp)($|\?)/i)) {
                 return `<img src="${url}" onclick="event.stopPropagation(); viewImage('${url}')">`;
             } else {
                 return `<a href="${url}" target="_blank">${url}</a>`;
@@ -299,13 +243,11 @@
         filtered.forEach(note => {
             const row = document.createElement('div');
             row.className = `note-row ${note.isHidden ? 'hidden-state' : ''}`;
-            const hideIcon = note.isHidden ? '👁️' : '🚫';
-            
             row.innerHTML = `
                 <div class="bubble">
                     ${processContent(note.content)}
                     <div class="meta-info">
-                        <span class="hide-btn" onclick="toggleHide(${note.id})">${hideIcon}</span>
+                        <span class="hide-btn" onclick="toggleHide(${note.id})">${note.isHidden ? '👁️' : '🚫'}</span>
                         ${formatFullTime(note.timestamp)}
                         <span class="check-mark">vv</span>
                     </div>
@@ -316,9 +258,10 @@
         scrollToBottom();
     }
 
-    // --- 核心同步与逻辑保持不变 ---
     async function syncFromGist() {
         if (!config.token || !config.gistId) return;
+        const btn = document.getElementById('sync-status-btn');
+        btn.innerText = '读取中';
         try {
             const res = await fetch(`https://api.github.com/gists/${config.gistId}`, {
                 headers: { 'Authorization': `token ${config.token}` }, cache: "no-store"
@@ -326,20 +269,22 @@
             const data = await res.json();
             notes = JSON.parse(data.files['notes.json'].content || '[]');
             renderNotes();
-        } catch (e) { document.getElementById('sync-status-btn').innerText = '重试'; }
+            btn.innerText = '同步';
+        } catch (e) { btn.innerText = '错误'; }
     }
 
     async function syncToGist() {
         if (!config.token || !config.gistId) return;
-        document.getElementById('sync-status-btn').innerText = '...';
+        const btn = document.getElementById('sync-status-btn');
+        btn.innerText = '更新中';
         try {
             await fetch(`https://api.github.com/gists/${config.gistId}`, {
                 method: 'PATCH',
                 headers: { 'Authorization': `token ${config.token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ files: { 'notes.json': { content: JSON.stringify(notes) } } })
             });
-            document.getElementById('sync-status-btn').innerText = '已同步';
-        } catch (e) { document.getElementById('sync-status-btn').innerText = '失败'; }
+            btn.innerText = '同步';
+        } catch (e) { btn.innerText = '失败'; }
     }
 
     function addNote() {
@@ -351,8 +296,8 @@
     }
 
     function toggleHide(id) {
-        const note = notes.find(n => n.id === id);
-        if (note) { note.isHidden = !note.isHidden; renderNotes(); syncToGist(); }
+        const n = notes.find(n => n.id === id);
+        if (n) { n.isHidden = !n.isHidden; renderNotes(); syncToGist(); }
     }
 
     function toggleSearch() {
@@ -369,6 +314,7 @@
     function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
     function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
     function toggleShowHidden() { config.showHidden = document.getElementById('show-hidden-switch').checked; localStorage.setItem('show_hidden', config.showHidden); renderNotes(); }
+    
     function saveSettings() {
         config.token = document.getElementById('github-token').value.trim();
         config.gistId = document.getElementById('gist-id').value.trim();
