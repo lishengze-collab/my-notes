@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Private Memo PN-3.1.7</title>
+    <title>Private Memo PN-3.1.8</title>
     <style>
         :root {
             --bg-main: #f9f9f9; 
@@ -24,38 +24,35 @@
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
             display: flex; flex-direction: column; overflow: hidden;
             -webkit-font-smoothing: antialiased;
-            /* 针对 iPhone 17 的平滑滚动优化 */
-            scroll-behavior: smooth;
         }
 
-        /* --- Header: 适配灵动岛布局 --- */
+        /* --- Header: 解决状态栏占用问题 --- */
         header {
             background: var(--bg-main);
             position: relative;
-            padding-top: calc(var(--safe-top) + 2px); /* 细微避让灵动岛 */
+            /* 关键：增加顶部安全区补偿，防止遮挡 */
+            padding-top: calc(var(--safe-top) + 12px); 
             padding-left: 18px; padding-right: 18px;
             display: flex; justify-content: space-between; align-items: center; z-index: 1001;
-            height: auto; min-height: 44px;
+            min-height: 50px;
         }
 
         h1 { 
             font-size: 15px; font-weight: 600; color: var(--text-secondary); 
             margin: 0; letter-spacing: -0.3px; cursor: pointer;
-            padding-top: 10px; /* 标题重心微调 */
         }
 
         .search-trigger {
-            background: none; border: none; padding: 10px 0; color: var(--accent-green);
+            background: none; border: none; padding: 8px 0; color: var(--accent-green);
             cursor: pointer; display: flex; align-items: center;
-            padding-top: 12px;
         }
 
-        /* --- 搜索框区域 --- */
+        /* --- 搜索框区域: 物理下移 --- */
         #search-wrapper {
             background: var(--bg-main);
-            padding: 4px 16px 10px 16px;
+            padding: 8px 16px 12px 16px; /* 增加上内边距 */
             display: none; z-index: 1000;
-            animation: slideDown 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         #search-input { 
             width: 100%; background: #e3e3e6; border: none; border-radius: 12px; 
@@ -69,13 +66,11 @@
             display: flex; gap: 8px; overflow-x: auto; white-space: nowrap;
             background: var(--bg-main);
             -webkit-overflow-scrolling: touch;
-            will-change: transform;
         }
         #tag-bar::-webkit-scrollbar { display: none; }
         .tag-pill {
             background: #e3e3e6; color: var(--text-main); padding: 6px 14px;
             border-radius: 16px; font-size: 13px; font-weight: 500;
-            transition: background 0.2s;
         }
         .tag-pill.active { background: var(--accent-blue); color: white; }
 
@@ -83,27 +78,24 @@
         #notes-container {
             flex: 1; overflow-y: auto; padding: 10px 20px 180px 20px;
             display: flex; flex-direction: column; -webkit-overflow-scrolling: touch;
-            /* 启用硬件加速 */
-            transform: translateZ(0);
         }
 
         .note-row { 
             position: relative; padding-left: 18px; margin-bottom: 30px;
-            border-left: 1.2px solid #d1d1d6; animation: fadeIn 0.35s ease-out;
+            border-left: 1.2px solid #d1d1d6; animation: fadeIn 0.3s ease-out;
         }
 
         .timestamp-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-        .timestamp { font-size: 11px; color: var(--text-secondary); font-weight: 600; font-variant-numeric: tabular-nums; opacity: 0.8; }
+        .timestamp { font-size: 11px; color: var(--text-secondary); font-weight: 600; font-variant-numeric: tabular-nums; }
         .hide-btn { font-size: 18px; color: var(--text-secondary); cursor: pointer; padding: 0 5px; line-height: 1; opacity: 0.4; }
 
-        .journal-content { font-size: 17px; line-height: 1.6; color: var(--text-main); word-wrap: break-word; white-space: pre-wrap; letter-spacing: -0.1px; }
-        .journal-content img { max-width: 100%; border-radius: 14px; margin-top: 12px; display: block; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .journal-content { font-size: 17px; line-height: 1.6; color: var(--text-main); word-wrap: break-word; white-space: pre-wrap; }
+        .journal-content img { max-width: 100%; border-radius: 14px; margin-top: 12px; display: block; }
         .hashtag { color: var(--accent-blue); font-weight: 600; cursor: pointer; }
 
         .note-row.hidden-state { opacity: 0.2; filter: grayscale(1) blur(0.5px); }
-        .empty-hint { text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 80px; }
 
-        /* --- Input Area: 适配 iPhone 17 全屏底座 --- */
+        /* --- Input Area --- */
         .input-wrapper {
             position: fixed; bottom: 0; left: 0; right: 0; background: rgba(249, 249, 249, 0.96); 
             backdrop-filter: blur(25px) saturate(190%);
@@ -116,37 +108,50 @@
             font-size: 13px; font-weight: 700; color: #ffffff;
             background: var(--accent-green); border: none;
             padding: 7px 14px; border-radius: 8px; white-space: nowrap;
-            cursor: pointer; transition: transform 0.15s;
+            cursor: pointer;
         }
-        .sync-btn-mini:active { transform: scale(0.92); opacity: 0.8; }
 
         #note-input {
             flex: 1; border: none; background: #e3e3e6; border-radius: 20px;
             padding: 10px 16px; font-size: 17px; outline: none; font-family: inherit;
             resize: none; max-height: 150px; min-height: 40px; box-sizing: border-box;
-            display: flex; align-items: center;
         }
 
         #send-btn {
             background: var(--accent-green); color: white; border: none; border-radius: 50%;
             width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; transition: transform 0.15s;
+            flex-shrink: 0;
         }
-        #send-btn:active { transform: scale(0.9); }
 
-        /* --- Settings Modal --- */
+        /* --- Settings Modal: 优化为极致圆润 --- */
         #settings-modal {
             position:fixed; top:0; left:0; right:0; bottom:0; display:none; 
             align-items:center; justify-content:center; z-index:2000; 
-            background:rgba(0,0,0,0.25); backdrop-filter: blur(30px) saturate(180%);
+            background:rgba(0,0,0,0.3); backdrop-filter: blur(15px);
         }
         .modal-content {
-            background: rgba(255,255,255,0.98); width: 290px; padding: 24px; 
-            border-radius: 20px; text-align: center;
+            background: #ffffff; width: 300px; padding: 28px 24px; 
+            border-radius: 28px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            transform: scale(0.9); transition: transform 0.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+        }
+        #settings-modal.active .modal-content { transform: scale(1); }
+        
+        .modal-content h3 { margin: 0 0 20px 0; font-size: 18px; font-weight: 700; color: var(--text-main); }
+        
+        .modal-content input[type="text"], .modal-content input[type="password"] {
+            width: 100%; margin: 6px 0 12px 0; padding: 12px 16px; 
+            border: 1px solid #efefef; background: #f5f5f7;
+            border-radius: 14px; box-sizing: border-box; font-size: 15px; outline: none;
+        }
+        
+        .modal-content .save-btn {
+            background: var(--accent-green); color: white; border: none; 
+            padding: 14px; border-radius: 14px; width: 100%; 
+            font-weight: 700; font-size: 16px; margin-top: 10px;
         }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
@@ -176,15 +181,15 @@
 
 <div id="settings-modal">
     <div class="modal-content">
-        <h3 style="margin: 0 0 18px 0; font-size: 18px; font-weight: 700;">Settings</h3>
-        <input type="password" id="github-token">
-        <input type="text" id="gist-id">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin:18px 0;">
-            <span style="font-size:14px; color: var(--text-secondary); font-weight: 500;">显示已隐藏内容</span>
-            <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()" style="width:auto">
+        <h3>Settings</h3>
+        <input type="password" id="github-token" placeholder="GitHub Token">
+        <input type="text" id="gist-id" placeholder="Gist ID">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:15px 4px;">
+            <span style="font-size:14px; color: var(--text-secondary); font-weight: 500;">显示隐藏内容</span>
+            <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()" style="width:20px; height:20px;">
         </div>
-        <button onclick="saveSettings()" style="background:var(--accent-green); color:white; border:none; padding:12px; border-radius:10px; width:100%; font-weight:700; font-size:16px;">保存</button>
-        <button onclick="closeSettings()" style="background:none; border:none; color:var(--text-secondary); margin-top:15px; font-size:14px;">取消</button>
+        <button class="save-btn" onclick="saveSettings()">保存</button>
+        <button onclick="closeSettings()" style="background:none; border:none; color:var(--text-secondary); margin-top:16px; font-size:14px; font-weight:500;">取消</button>
     </div>
 </div>
 
@@ -201,6 +206,7 @@
     const searchWrapper = document.getElementById('search-wrapper');
     const searchInput = document.getElementById('search-input');
     const tagBar = document.getElementById('tag-bar');
+    const modal = document.getElementById('settings-modal');
 
     window.onload = function() {
         document.getElementById('show-hidden-switch').checked = config.showHidden;
@@ -211,10 +217,8 @@
         if (config.token && config.gistId) syncFromGist(); else openSettings();
     };
 
-    function getBeijingDate() {
-        return new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Shanghai"}));
-    }
-
+    function getBeijingDate() { return new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Shanghai"})); }
+    
     function formatJournalTime(isoString) {
         const d = new Date(isoString);
         const pad = n => String(n).padStart(2, '0');
@@ -249,7 +253,6 @@
         container.innerHTML = '';
         const searchText = searchInput.value.toLowerCase();
         let hiddenMatches = 0;
-
         const filtered = notes.filter(n => {
             const matchesTag = currentFilterTag ? n.content.includes(currentFilterTag) : true;
             const matchesText = n.content.toLowerCase().includes(searchText);
@@ -257,22 +260,14 @@
             if (matchesTag && matchesText && !isVisible) hiddenMatches++;
             return matchesTag && matchesText && isVisible;
         });
-
         filtered.forEach(note => {
             const row = document.createElement('div');
             row.className = `note-row ${note.isHidden ? 'hidden-state' : ''}`;
-            row.innerHTML = `
-                <div class="timestamp-row">
-                    <span class="timestamp">${formatJournalTime(note.timestamp)}</span>
-                    <span class="hide-btn" onclick="toggleHide(${note.id})">×</span>
-                </div>
-                <div class="journal-content">${processContent(note.content)}</div>
-            `;
+            row.innerHTML = `<div class="timestamp-row"><span class="timestamp">${formatJournalTime(note.timestamp)}</span><span class="hide-btn" onclick="toggleHide(${note.id})">×</span></div><div class="journal-content">${processContent(note.content)}</div>`;
             container.appendChild(row);
         });
-
         if (filtered.length === 0 && (currentFilterTag || searchText)) {
-            container.innerHTML = `<div class="empty-hint">${hiddenMatches > 0 ? '🔒 已隐藏匹配内容' : '无结果'}</div>`;
+            container.innerHTML = `<div class="empty-hint">${hiddenMatches > 0 ? '🔒 已隐藏符合条件的内容' : '无结果'}</div>`;
         }
         updateTagBar();
         if (!currentFilterTag && !searchText) container.scrollTop = container.scrollHeight;
@@ -293,9 +288,7 @@
         const syncBtn = document.querySelector('.sync-btn-mini');
         syncBtn.innerText = '...';
         try {
-            const res = await fetch(`https://api.github.com/gists/${config.gistId}`, {
-                headers: { 'Authorization': `token ${config.token}` }, cache: "no-store"
-            });
+            const res = await fetch(`https://api.github.com/gists/${config.gistId}`, { headers: { 'Authorization': `token ${config.token}` }, cache: "no-store" });
             const data = await res.json();
             notes = JSON.parse(data.files['notes.json'].content || '[]');
             renderNotes();
@@ -329,12 +322,15 @@
         if (n) { n.isHidden = !n.isHidden; renderNotes(); syncToGist(); }
     }
 
-    function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
-    function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
-    function toggleShowHidden() { 
-        config.showHidden = document.getElementById('show-hidden-switch').checked; 
-        localStorage.setItem('show_hidden', config.showHidden); renderNotes(); 
+    function openSettings() { 
+        modal.style.display = 'flex'; 
+        setTimeout(() => modal.classList.add('active'), 10);
     }
+    function closeSettings() { 
+        modal.classList.remove('active');
+        setTimeout(() => modal.style.display = 'none', 200);
+    }
+    function toggleShowHidden() { config.showHidden = document.getElementById('show-hidden-switch').checked; localStorage.setItem('show_hidden', config.showHidden); renderNotes(); }
     
     function saveSettings() {
         config.token = document.getElementById('github-token').value.trim();
