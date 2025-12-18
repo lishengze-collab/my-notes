@@ -5,19 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>PN-3 笔记</title>
+    <title>Private Note</title>
     <style>
         :root {
-            --bg-color: #f2f2f7;
-            --bubble-me: #007aff;
-            --text-me: #ffffff;
-            --timestamp-color: rgba(255, 255, 255, 0.7);
+            --bg-color: #e5ddd5; /* WhatsApp 经典背景色 */
+            --bubble-me: #dcf8c6; /* WhatsApp 绿色气泡 */
+            --text-main: #303030;
+            --timestamp-color: #8696a0;
+            --accent-blue: #53bdeb; /* 送达勾选的蓝色 */
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "San Francisco", "Helvetica Neue", Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
             padding: 0;
@@ -25,168 +26,185 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
         }
 
-        /* --- Header --- */
+        /* --- Header: 解决重叠 --- */
         header {
-            background: rgba(249, 249, 249, 0.94);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 0.5px solid rgba(0,0,0,0.1);
-            padding-top: calc(10px + var(--safe-top)); 
-            padding-bottom: 10px;
+            background: #f0f2f5;
+            padding-top: calc(15px + var(--safe-top)); /* 增加偏移量解决状态栏重叠 */
+            padding-bottom: 12px;
             padding-left: 15px;
             padding-right: 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
         }
 
-        h1 { font-size: 17px; font-weight: 600; margin: 0; flex: 1; text-align: center; }
-        .header-btn { font-size: 16px; color: var(--bubble-me); background: none; border: none; cursor: pointer; padding: 5px; min-width: 40px; }
+        h1 { font-size: 18px; font-weight: 600; margin: 0; color: #41525d; }
+        .header-btn { font-size: 16px; color: #54656f; background: none; border: none; cursor: pointer; }
 
         /* --- Search --- */
         #search-container {
-            background: rgba(249, 249, 249, 0.94);
+            background: #fff;
             padding: 8px 15px;
-            border-bottom: 0.5px solid rgba(0,0,0,0.05);
             display: none;
             animation: slideDown 0.2s ease;
         }
-        #search-input { width: 100%; background: #e3e3e8; border: none; border-radius: 10px; padding: 8px 10px; font-size: 14px; outline: none; }
+        #search-input { 
+            width: 100%; 
+            background: #f0f2f5; 
+            border: none; 
+            border-radius: 8px; 
+            padding: 8px 12px; 
+            font-size: 14px; 
+            outline: none;
+            box-sizing: border-box;
+        }
 
-        /* --- List --- */
+        /* --- Notes List --- */
         #notes-container {
             flex: 1;
             overflow-y: auto;
             padding: 15px;
-            padding-bottom: calc(80px + var(--safe-bottom)); 
+            padding-bottom: 100px; 
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            background-color: #f0f0f5; 
-            -webkit-overflow-scrolling: touch; /* iOS smooth scroll */
+            gap: 8px; /* 紧凑布局 */
+            -webkit-overflow-scrolling: touch;
         }
 
         .note-row { display: flex; justify-content: flex-end; width: 100%; animation: fadeIn 0.2s ease; }
         
+        /* 气泡样式优化：模仿 WhatsApp */
         .bubble {
             background-color: var(--bubble-me);
-            color: var(--text-me);
-            padding: 10px 14px;
-            border-radius: 18px;
-            border-bottom-right-radius: 4px;
-            max-width: 80%;
+            color: var(--text-main);
+            padding: 8px 12px 6px 12px;
+            border-radius: 10px 0px 10px 10px; /* 经典的右上尖角 */
+            max-width: 85%;
             position: relative;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 1px 0.5px rgba(0,0,0,0.13);
             word-wrap: break-word;
             font-size: 16px;
-            line-height: 1.4;
+            line-height: 1.45;
         }
 
-        /* 图片样式优化 */
-        .bubble img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-top: 5px;
-            margin-bottom: 2px;
-            display: block;
-            cursor: pointer;
-        }
+        .bubble img { max-width: 100%; border-radius: 6px; margin-top: 5px; display: block; }
+        .bubble a { color: #0645ad; text-decoration: underline; }
 
-        /* 链接样式优化 */
-        .bubble a { color: white; text-decoration: underline; word-break: break-all; }
+        /* 隐藏态样式 */
+        .note-row.hidden-state .bubble { background-color: #f1f1f1; color: #999; border: 1px dashed #ccc; box-shadow: none; }
 
-        /* 隐藏态 */
-        .note-row.hidden-state .bubble { background-color: #e5e5ea; color: #8e8e93; border: 1px dashed #c7c7cc; }
-        .note-row.hidden-state .bubble img { opacity: 0.3; }
-        .note-row.hidden-state .meta-info { color: #8e8e93; }
-
+        /* 时间戳 + 蓝勾样式 */
         .meta-info {
-            display: flex; justify-content: flex-end; align-items: center;
-            margin-top: 4px; font-size: 10px; color: var(--timestamp-color); gap: 8px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--timestamp-color);
+            gap: 4px;
         }
-        .hide-btn { opacity: 0.6; cursor: pointer; font-size: 12px; }
+        .check-mark {
+            color: var(--accent-blue);
+            font-weight: bold;
+            font-size: 12px;
+            display: inline-flex;
+        }
+        .hide-btn { margin-right: 5px; opacity: 0.5; }
 
-        /* --- Input Area --- */
+        /* --- Input Area: 收窄适配 --- */
         .input-wrapper {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #f9f9f9; border-top: 0.5px solid rgba(0,0,0,0.15);
-            padding: 10px 15px;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #f0f2f5;
+            padding: 10px 10px; /* 侧边留空 */
             padding-bottom: calc(10px + var(--safe-bottom));
-            display: flex; align-items: flex-end; gap: 10px;
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
             z-index: 200;
         }
 
-        #emoji-bar {
-            position: fixed; bottom: calc(60px + var(--safe-bottom)); left: 0; width: 100%;
-            background: #fff; border-top: 0.5px solid #ddd; padding: 10px;
-            display: none; overflow-x: auto; white-space: nowrap; z-index: 190;
-        }
-        .emoji-item { font-size: 24px; margin: 0 8px; cursor: pointer; display: inline-block; }
-        .tool-btn { font-size: 24px; background: none; border: none; padding: 0 5px; margin-bottom: 5px; cursor: pointer; }
-
         #note-input {
-            flex: 1; border: 1px solid #d1d1d6; background: white; border-radius: 18px;
-            padding: 9px 12px; font-size: 16px; outline: none; font-family: inherit;
-            resize: none; max-height: 120px; min-height: 38px; line-height: 20px;
+            flex: 1;
+            border: none;
+            background: white;
+            border-radius: 20px;
+            padding: 10px 15px;
+            font-size: 16px;
+            outline: none;
+            font-family: inherit;
+            resize: none;
+            max-height: 120px;
+            min-height: 40px;
+            line-height: 20px;
+            box-sizing: border-box; /* 核心修复：确保宽度包含 padding */
         }
 
         #send-btn {
-            background: var(--bubble-me); color: white; border: none; border-radius: 50%;
-            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; flex-shrink: 0; margin-bottom: 1px;
+            background: #00a884; /* WhatsApp 绿色发送按钮 */
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
-        /* --- Settings Modal --- */
-        #settings-modal, #image-viewer {
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            display: none; align-items: center; justify-content: center; z-index: 300;
+        #emoji-bar {
+            position: fixed; bottom: calc(65px + var(--safe-bottom)); left: 10px; right: 10px;
+            background: #fff; border-radius: 15px; padding: 10px;
+            display: none; overflow-x: auto; white-space: nowrap; z-index: 190;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
-        #settings-modal { background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); }
-        .modal-content {
-            background: rgba(255,255,255,0.95); width: 80%; max-width: 320px;
-            padding: 25px; border-radius: 20px; text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-        }
-        .modal-content input { width: 90%; margin: 10px 0; padding: 10px; border: 1px solid #e5e5ea; border-radius: 10px; background: #f2f2f7; }
-        .btn-primary { background: var(--bubble-me); color: white; border: none; padding: 10px 0; border-radius: 12px; font-size: 16px; font-weight: 600; width: 100%; margin-top: 10px; cursor: pointer; }
-        
-        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin: 15px 5px; font-size: 14px; }
-        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
-        .switch input { display: none; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 24px; width: 24px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #34c759; }
-        input:checked + .slider:before { transform: translateX(22px); }
+        .emoji-item { font-size: 24px; margin: 0 8px; cursor: pointer; }
 
         /* --- Image Viewer --- */
-        #image-viewer { background: rgba(0,0,0,0.95); z-index: 500; }
-        #image-viewer img { max-width: 100%; max-height: 90%; object-fit: contain; }
+        #image-viewer { 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 500;
+        }
+        #image-viewer img { max-width: 95%; max-height: 90%; object-fit: contain; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideDown { from { transform: translateY(-100%); } to { transform: translateY(0); } }
+        /* --- Settings Modal --- */
+        #settings-modal {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 400;
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background: white; width: 85%; max-width: 320px;
+            padding: 25px; border-radius: 20px; text-align: center;
+        }
+        .modal-content input { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        .btn-primary { background: #00a884; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: 600; margin-top: 10px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
 <header>
     <button class="header-btn" onclick="toggleSearch()">🔍</button>
-    <h1>PN-3</h1>
+    <h1>Private Note</h1>
     <button class="header-btn" id="sync-status-btn" onclick="openSettings()">同步</button>
 </header>
 
 <div id="search-container">
-    <input type="text" id="search-input" placeholder="输入关键字查找..." oninput="handleSearch()">
+    <input type="text" id="search-input" placeholder="搜索消息..." oninput="handleSearch()">
 </div>
 
-<div id="notes-container">
-    <div style="text-align: center; color: #999; margin-top: 60px; font-size: 13px;">
-        PN-3 初始化...
-    </div>
-</div>
+<div id="notes-container"></div>
 
 <div id="emoji-bar">
     <span class="emoji-item" onclick="insertEmoji('📅')">📅</span>
@@ -194,41 +212,36 @@
     <span class="emoji-item" onclick="insertEmoji('📝')">📝</span>
     <span class="emoji-item" onclick="insertEmoji('💡')">💡</span>
     <span class="emoji-item" onclick="insertEmoji('⚠️')">⚠️</span>
-    <span class="emoji-item" onclick="insertEmoji('🔴')">🔴</span>
-    <span class="emoji-item" onclick="insertEmoji('🟢')">🟢</span>
     <span class="emoji-item" onclick="insertEmoji('📌')">📌</span>
     <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
-    <span class="emoji-item" onclick="insertEmoji('🤔')">🤔</span>
     <span class="emoji-item" onclick="insertEmoji('👍')">👍</span>
-    <span class="emoji-item" onclick="insertEmoji('👀')">👀</span>
     <span class="emoji-item" onclick="insertEmoji('🚀')">🚀</span>
 </div>
 
 <div class="input-wrapper">
-    <button class="tool-btn" onclick="toggleEmoji()">😊</button>
-    <textarea id="note-input" rows="1" placeholder="记录..."></textarea>
-    <button id="send-btn" onclick="addNote()">↑</button>
+    <button class="header-btn" style="font-size:24px" onclick="toggleEmoji()">😊</button>
+    <textarea id="note-input" rows="1" placeholder="输入记录..."></textarea>
+    <button id="send-btn" onclick="addNote()">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
+    </button>
 </div>
 
 <div id="settings-modal">
     <div class="modal-content">
-        <h3>配置中心</h3>
+        <h3>同步设置</h3>
         <input type="password" id="github-token" placeholder="GitHub Token">
         <input type="text" id="gist-id" placeholder="Gist ID">
-        <div class="toggle-row">
-            <span>显示已隐藏</span>
-            <label class="switch">
-                <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()">
-                <span class="slider"></span>
-            </label>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin:15px 0;">
+            <span style="font-size:14px">显示隐藏内容</span>
+            <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()" style="width:auto">
         </div>
-        <button class="btn-primary" onclick="saveSettings()">保存配置</button>
-        <button onclick="closeSettings()" style="background:none; border:none; color:#8e8e93; margin-top:15px; font-size:14px;">取消</button>
+        <button class="btn-primary" onclick="saveSettings()">保存并同步数据</button>
+        <button onclick="closeSettings()" style="background:none; border:none; color:#8696a0; margin-top:15px;">关闭</button>
     </div>
 </div>
 
-<div id="image-viewer" onclick="closeImageViewer()">
-    <img id="full-image" src="" alt="Full View">
+<div id="image-viewer" onclick="this.style.display='none'">
+    <img id="full-image" src="">
 </div>
 
 <script>
@@ -241,8 +254,7 @@
     let isEmojiOpen = false;
     const container = document.getElementById('notes-container');
     const input = document.getElementById('note-input');
-    
-    // 初始化
+
     window.onload = function() {
         document.getElementById('show-hidden-switch').checked = config.showHidden;
         input.addEventListener('input', function() {
@@ -265,52 +277,16 @@
         return `${pad(date.getDate())}/${pad(date.getMonth()+1)}/${String(date.getFullYear()).slice(-2)} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
 
-    // --- 核心更新：文本处理与图片渲染 ---
     function processContent(text) {
-        // 1. 安全转义
         let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        
-        // 2. 识别 URL
         const urlRegex = /(https?:\/\/[^\s]+)/g;
-        
         return safeText.replace(urlRegex, (url) => {
-            // 3. 检查是否为图片扩展名
             if (url.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i)) {
-                return `<img src="${url}" onclick="viewImage('${url}')">`;
+                return `<img src="${url}" onclick="event.stopPropagation(); viewImage('${url}')">`;
             } else {
                 return `<a href="${url}" target="_blank">${url}</a>`;
             }
         }).replace(/\n/g, '<br>');
-    }
-
-    function addNote() {
-        const text = input.value.trim();
-        if (!text) return;
-
-        const now = getBeijingDate();
-        notes.push({
-            id: Date.now(),
-            content: text,
-            timestamp: now.toISOString(),
-            isHidden: false
-        });
-
-        input.value = '';
-        input.style.height = 'auto';
-        if(isEmojiOpen) toggleEmoji();
-        
-        renderNotes();
-        syncToGist();
-        scrollToBottom();
-    }
-
-    function toggleHide(id) {
-        const note = notes.find(n => n.id === id);
-        if (note) {
-            note.isHidden = !note.isHidden;
-            renderNotes();
-            syncToGist();
-        }
     }
 
     function renderNotes(filterText = '') {
@@ -320,71 +296,29 @@
             return matchesSearch && (config.showHidden || !n.isHidden);
         });
 
-        if (filtered.length === 0) {
-            container.innerHTML = '<div style="text-align:center; color:#ccc; margin-top:20px;">无内容</div>';
-            return;
-        }
-
         filtered.forEach(note => {
             const row = document.createElement('div');
             row.className = `note-row ${note.isHidden ? 'hidden-state' : ''}`;
             const hideIcon = note.isHidden ? '👁️' : '🚫';
             
-            // 使用新的 processContent 处理内容
             row.innerHTML = `
                 <div class="bubble">
                     ${processContent(note.content)}
                     <div class="meta-info">
-                        ${formatFullTime(note.timestamp)}
                         <span class="hide-btn" onclick="toggleHide(${note.id})">${hideIcon}</span>
+                        ${formatFullTime(note.timestamp)}
+                        <span class="check-mark">vv</span>
                     </div>
                 </div>
             `;
             container.appendChild(row);
         });
+        scrollToBottom();
     }
 
-    // --- 图片查看器 ---
-    window.viewImage = function(url) {
-        // 这里阻止冒泡防止触发其他事件，虽然在 bubble 里一般没事
-        event.stopPropagation();
-        document.getElementById('full-image').src = url;
-        document.getElementById('image-viewer').style.display = 'flex';
-    }
-
-    window.closeImageViewer = function() {
-        document.getElementById('image-viewer').style.display = 'none';
-        document.getElementById('full-image').src = '';
-    }
-
-    // --- 功能区 ---
-    function toggleSearch() {
-        const box = document.getElementById('search-container');
-        if (box.style.display === 'block') {
-            box.style.display = 'none';
-            document.getElementById('search-input').value = '';
-            renderNotes();
-        } else {
-            box.style.display = 'block';
-            document.getElementById('search-input').focus();
-        }
-    }
-    function handleSearch() { renderNotes(document.getElementById('search-input').value); }
-    
-    function toggleEmoji() {
-        const bar = document.getElementById('emoji-bar');
-        isEmojiOpen = !isEmojiOpen;
-        bar.style.display = isEmojiOpen ? 'block' : 'none';
-    }
-    function insertEmoji(e) { input.value += e; input.focus(); }
-    
-    function scrollToBottom() { setTimeout(() => container.scrollTop = container.scrollHeight, 100); }
-
-    // --- Sync ---
+    // --- 核心同步与逻辑保持不变 ---
     async function syncFromGist() {
         if (!config.token || !config.gistId) return;
-        const btn = document.getElementById('sync-status-btn');
-        btn.innerText = '...';
         try {
             const res = await fetch(`https://api.github.com/gists/${config.gistId}`, {
                 headers: { 'Authorization': `token ${config.token}` }, cache: "no-store"
@@ -392,42 +326,55 @@
             const data = await res.json();
             notes = JSON.parse(data.files['notes.json'].content || '[]');
             renderNotes();
-            scrollToBottom();
-            btn.innerText = '同步';
-        } catch (e) {
-            console.error(e);
-            btn.innerText = '重试';
-        }
+        } catch (e) { document.getElementById('sync-status-btn').innerText = '重试'; }
     }
 
     async function syncToGist() {
         if (!config.token || !config.gistId) return;
-        const btn = document.getElementById('sync-status-btn');
-        btn.innerText = '↑';
+        document.getElementById('sync-status-btn').innerText = '...';
         try {
             await fetch(`https://api.github.com/gists/${config.gistId}`, {
                 method: 'PATCH',
                 headers: { 'Authorization': `token ${config.token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ files: { 'notes.json': { content: JSON.stringify(notes) } } })
             });
-            btn.innerText = '同步';
-        } catch (e) {
-            btn.innerText = '失败';
-        }
+            document.getElementById('sync-status-btn').innerText = '已同步';
+        } catch (e) { document.getElementById('sync-status-btn').innerText = '失败'; }
     }
 
-    // Settings
-    function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; document.getElementById('github-token').value = config.token; document.getElementById('gist-id').value = config.gistId; }
+    function addNote() {
+        const text = input.value.trim();
+        if (!text) return;
+        notes.push({ id: Date.now(), content: text, timestamp: getBeijingDate().toISOString(), isHidden: false });
+        input.value = ''; input.style.height = 'auto';
+        renderNotes(); syncToGist();
+    }
+
+    function toggleHide(id) {
+        const note = notes.find(n => n.id === id);
+        if (note) { note.isHidden = !note.isHidden; renderNotes(); syncToGist(); }
+    }
+
+    function toggleSearch() {
+        const box = document.getElementById('search-container');
+        box.style.display = (box.style.display === 'block') ? 'none' : 'block';
+        if(box.style.display === 'block') document.getElementById('search-input').focus();
+    }
+
+    function handleSearch() { renderNotes(document.getElementById('search-input').value); }
+    function toggleEmoji() { isEmojiOpen = !isEmojiOpen; document.getElementById('emoji-bar').style.display = isEmojiOpen ? 'block' : 'none'; }
+    function insertEmoji(e) { input.value += e; input.focus(); }
+    function viewImage(url) { document.getElementById('full-image').src = url; document.getElementById('image-viewer').style.display = 'flex'; }
+    function scrollToBottom() { container.scrollTop = container.scrollHeight; }
+    function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
     function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
-    function toggleShowHidden() { config.showHidden = document.getElementById('show-hidden-switch').checked; }
+    function toggleShowHidden() { config.showHidden = document.getElementById('show-hidden-switch').checked; localStorage.setItem('show_hidden', config.showHidden); renderNotes(); }
     function saveSettings() {
-        const t = document.getElementById('github-token').value.trim();
-        const g = document.getElementById('gist-id').value.trim();
-        if(t && g) {
-            localStorage.setItem('gh_token', t); localStorage.setItem('gh_gist_id', g); localStorage.setItem('show_hidden', config.showHidden);
-            config.token = t; config.gistId = g;
-            closeSettings(); syncFromGist();
-        } else alert('请填写完整');
+        config.token = document.getElementById('github-token').value.trim();
+        config.gistId = document.getElementById('gist-id').value.trim();
+        localStorage.setItem('gh_token', config.token);
+        localStorage.setItem('gh_gist_id', config.gistId);
+        closeSettings(); syncFromGist();
     }
 
     input.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); addNote(); }});
