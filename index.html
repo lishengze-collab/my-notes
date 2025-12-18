@@ -4,21 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default"> <title>Private Note</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Private Note</title>
     <style>
         :root {
             --bg-color: #e5ddd5;
             --bubble-me: #dcf8c6;
             --text-main: #303030;
             --timestamp-color: #8696a0;
-            --accent-blue: #53bdeb;
+            --accent-green: #25d366; /* 绿色勾选颜色 */
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
 
+        /* 核心修复：确保屏幕最顶部永远有一层纯白背景覆盖 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: calc(100px + var(--safe-top)); /* 足够覆盖header和搜索栏 */
+            background: #ffffff;
+            z-index: 50; /* 低于header但高于背景 */
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color); /* 底部依然维持聊天背景色 */
+            background-color: var(--bg-color);
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -27,27 +40,32 @@
             overflow: hidden;
         }
 
-        /* --- Header: 纯白填充，消除色差 --- */
+        /* --- Header --- */
         header {
-            background: #ffffff; /* 强制纯白 */
-            /* 增加顶部填充，确保白色覆盖整个状态栏区域 */
+            background: #ffffff;
+            position: relative;
             padding-top: calc(30px + var(--safe-top)); 
-            padding-bottom: 15px;
+            padding-bottom: 12px;
             padding-left: 20px;
             padding-right: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
-            border-bottom: 0.5px solid #f2f2f2; /* 极细的分界线 */
         }
 
         h1 { font-size: 18px; font-weight: 700; margin: 0; color: #41525d; flex: 1; text-align: center; }
-        .header-btn { font-size: 16px; color: #54656f; background: none; border: none; cursor: pointer; min-width: 40px; }
+        .header-btn { font-size: 18px; color: #54656f; background: none; border: none; cursor: pointer; min-width: 40px; }
 
-        /* --- Search --- */
+        /* --- Search: 同样纯白背景以消除色差 --- */
         #search-container {
-            background: #ffffff; padding: 10px 15px; display: none; animation: slideDown 0.2s ease;
+            background: #ffffff; 
+            padding: 0px 15px 10px 15px; 
+            display: none; 
+            position: relative;
+            z-index: 90;
+            animation: slideDown 0.2s ease;
+            border-bottom: 0.5px solid #f2f2f2;
         }
         #search-input { 
             width: 100%; background: #f0f2f5; border: none; border-radius: 10px; 
@@ -63,6 +81,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            z-index: 10; /* 低于顶部的白色图层 */
             -webkit-overflow-scrolling: touch;
         }
 
@@ -86,11 +105,12 @@
 
         .note-row.hidden-state .bubble { background-color: #f1f1f1; color: #999; border: 1px dashed #ccc; box-shadow: none; }
 
+        /* Meta & Tick Mark */
         .meta-info {
             display: flex; justify-content: flex-end; align-items: center;
             margin-top: 4px; font-size: 11px; color: var(--timestamp-color); gap: 4px;
         }
-        .check-mark { color: var(--accent-blue); font-weight: bold; font-size: 12px; }
+        .check-mark { color: var(--accent-green); font-weight: bold; font-size: 14px; margin-left: 2px; }
         .hide-btn { margin-right: 5px; opacity: 0.5; }
 
         /* --- Input Area --- */
@@ -120,7 +140,7 @@
         }
         .emoji-item { font-size: 26px; margin: 0 10px; cursor: pointer; display: inline-block; }
 
-        /* Modals */
+        /* Modals & Viewer */
         #settings-modal, #image-viewer {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             display: none; align-items: center; justify-content: center; z-index: 500;
@@ -247,7 +267,7 @@
                     <div class="meta-info">
                         <span class="hide-btn" onclick="toggleHide(${note.id})">${note.isHidden ? '👁️' : '🚫'}</span>
                         ${formatFullTime(note.timestamp)}
-                        <span class="check-mark">vv</span>
+                        <span class="check-mark">✓</span>
                     </div>
                 </div>
             `;
