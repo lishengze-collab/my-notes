@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Private Note</title>
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"> <title>Private Note</title>
     <style>
         :root {
             --bg-color: #e5ddd5;
@@ -19,7 +18,7 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-color);
+            background-color: var(--bg-color); /* 底部依然维持聊天背景色 */
             margin: 0;
             padding: 0;
             height: 100vh;
@@ -28,19 +27,19 @@
             overflow: hidden;
         }
 
-        /* --- Header: 深度下移以避开灵动岛 --- */
+        /* --- Header: 纯白填充，消除色差 --- */
         header {
-            background: #f0f2f5;
-            /* 28px 为基础偏移，加上安全区域高度 */
-            padding-top: calc(28px + var(--safe-top)); 
+            background: #ffffff; /* 强制纯白 */
+            /* 增加顶部填充，确保白色覆盖整个状态栏区域 */
+            padding-top: calc(30px + var(--safe-top)); 
             padding-bottom: 15px;
-            padding-left: 15px;
-            padding-right: 15px;
+            padding-left: 20px;
+            padding-right: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             z-index: 100;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            border-bottom: 0.5px solid #f2f2f2; /* 极细的分界线 */
         }
 
         h1 { font-size: 18px; font-weight: 700; margin: 0; color: #41525d; flex: 1; text-align: center; }
@@ -48,10 +47,10 @@
 
         /* --- Search --- */
         #search-container {
-            background: #fff; padding: 8px 15px; display: none; animation: slideDown 0.2s ease;
+            background: #ffffff; padding: 10px 15px; display: none; animation: slideDown 0.2s ease;
         }
         #search-input { 
-            width: 100%; background: #f0f2f5; border: none; border-radius: 8px; 
+            width: 100%; background: #f0f2f5; border: none; border-radius: 10px; 
             padding: 8px 12px; font-size: 14px; outline: none; box-sizing: border-box;
         }
 
@@ -87,7 +86,6 @@
 
         .note-row.hidden-state .bubble { background-color: #f1f1f1; color: #999; border: 1px dashed #ccc; box-shadow: none; }
 
-        /* Meta info & Double check */
         .meta-info {
             display: flex; justify-content: flex-end; align-items: center;
             margin-top: 4px; font-size: 11px; color: var(--timestamp-color); gap: 4px;
@@ -122,15 +120,15 @@
         }
         .emoji-item { font-size: 26px; margin: 0 10px; cursor: pointer; display: inline-block; }
 
-        /* Modal & Viewer */
+        /* Modals */
         #settings-modal, #image-viewer {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             display: none; align-items: center; justify-content: center; z-index: 500;
         }
         #settings-modal { background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        #image-viewer { background: rgba(0,0,0,0.9); }
+        #image-viewer { background: rgba(0,0,0,0.95); }
         .modal-content { background: white; width: 85%; max-width: 320px; padding: 25px; border-radius: 20px; text-align: center; }
-        .modal-content input { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 14px; }
+        .modal-content input { width: 100%; margin: 10px 0; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
         .btn-primary { background: #00a884; color: white; border: none; padding: 12px; border-radius: 10px; width: 100%; font-weight: 600; margin-top: 10px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
