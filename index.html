@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#f2f2f7">
-    <title>ME PN-4-Test.1001</title>
+    <title>ME PN-3.3.10</title>
     <style>
         :root {
             --bg-main: #f2f2f7; 
@@ -17,10 +17,13 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
         
+        /* 全域背景强制统一 */
         html, body { 
             background-color: var(--bg-main); 
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            -webkit-tap-highlight-color: transparent;
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            width: 100%;
         }
 
         * { -ms-overflow-style: none; scrollbar-width: none; }
@@ -29,129 +32,102 @@
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
         
         .app-container { 
-            display: flex; flex-direction: column; position: relative; 
-            height: 100vh; width: 100%; background: var(--bg-main); 
-            transition: opacity 0.3s ease; /* 用于恐慌模式 */
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            height: 100vh; 
+            width: 100%; 
+            background: var(--bg-main); 
         }
 
-        /* 桌面端适配保留 */
         @media (min-width: 500px) {
             body { background: #333 !important; display: flex; justify-content: center; align-items: center; }
             .app-container { width: 393px; height: 852px; border: 10px solid #1a1a1a; border-radius: 55px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         }
 
-        /* --- 升级点：动态毛玻璃 Header --- */
-        header { 
-            position: absolute; 
-            top: 0; left: 0; right: 0;
-            padding: calc(var(--safe-top) + 15px) 20px 15px; 
-            display: flex; justify-content: space-between; align-items: center; 
-            z-index: 20; 
-            background: rgba(242, 242, 247, 0.85); /* 半透明背景 */
-            backdrop-filter: blur(20px); /* 核心模糊效果 */
-            -webkit-backdrop-filter: blur(20px);
-            border-bottom: 0.5px solid rgba(0,0,0,0.05);
-        }
-
+        header { padding: calc(var(--safe-top) + 45px) 20px 10px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
         .header-left { display: flex; align-items: baseline; gap: 8px; }
+        
+        /* ME 加粗 */
         .title { font-size: 18px; font-weight: 900; color: var(--text-sec); cursor: pointer; line-height: 1; user-select: none; transition: color 0.3s; }
         .title.active { color: var(--ios-blue); } 
+
         .count-num { font-size: 16px; color: var(--text-main); font-weight: 800; }
 
-        /* --- 容器 --- */
-        #notes-container { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 0 20px 200px; /* 顶部padding由header遮挡部分留白 */
-            padding-top: calc(var(--safe-top) + 60px); /* 留出Header高度 */
-            -webkit-overflow-scrolling: touch; 
-            scroll-behavior: smooth; 
-        }
+        #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px 200px; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
         
-        /* --- 消息行 --- */
+        /* 移除原有的 border-left */
         .note-row { margin-bottom: 25px; animation: fadeIn 0.3s ease-in; position: relative; }
-        .note-row.is-hidden { background-color: rgba(255, 204, 0, 0.15); padding: 10px 15px; border-radius: 8px; }
         
-        /* 升级点：乐观UI - 发送中的半透明状态 */
-        .note-row.sending { opacity: 0.5; transition: opacity 0.5s ease; }
+        /* 隐藏消息的高亮样式 */
+        .note-row.is-hidden { background-color: rgba(255, 204, 0, 0.15); padding: 10px 15px; border-radius: 8px; }
 
+        /* 信息行：包含时间戳和删除按钮 */
         .info-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+
+        /* 时间戳样式 */
         .ts { font-size: 12px; color: var(--text-sec); font-weight: 500; }
 
+        /* 删除按钮样式：移动到时间戳后面 */
         .delete-btn {
-            color: #c7c7cc; font-size: 14px; cursor: pointer; font-weight: bold;
-            padding: 0 4px; line-height: 1; transition: transform 0.1s;
+            color: #c7c7cc;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 4px; /* 增加一点点击区域 */
+            line-height: 1;
         }
-        .delete-btn:active { transform: scale(1.2); } /* 点击反馈动画 */
         .is-hidden .delete-btn { color: #ffcc00; } 
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         .content-text { font-size: 18px; line-height: 1.6; color: var(--text-main); word-break: break-all; white-space: pre-wrap; }
-        .quote-line { color: #8e8e93; font-size: 15px; display: block; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; }
+        
+        /* 引用内容依然保留竖线，便于区分 */
+        .quote-line { color: #8e8e93; font-size: 15px; display: block; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; margin-left: 0px; }
         .quote-mark { color: var(--accent); font-weight: bold; margin-right: 4px; }
 
-        /* --- 升级点：骨架屏加载动画 --- */
-        .skeleton-row { margin-bottom: 20px; }
-        .skeleton-ts { width: 80px; height: 12px; background: #e3e3e6; border-radius: 4px; margin-bottom: 8px; }
-        .skeleton-text { width: 100%; height: 18px; background: #e3e3e6; border-radius: 4px; margin-bottom: 5px; }
-        .skeleton-text.short { width: 60%; }
-        .skeleton-pulse { animation: pulse 1.5s infinite ease-in-out; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        /* --- 底部区域 --- */
         footer { position: absolute; bottom: 0; width: 100%; background: var(--bg-main); border-top: 0.5px solid var(--line); padding-bottom: var(--safe-bottom); z-index: 100; }
         .input-row { padding: 12px 16px 8px; display: flex; align-items: center; gap: 8px; }
-        .sync-btn { background: var(--accent); color: white; border: none; height: 38px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; transition: transform 0.1s; }
-        .sync-btn:active { transform: scale(0.95); }
+        .sync-btn { background: var(--accent); color: white; border: none; height: 38px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; }
         #note-input { flex: 1; background: #e3e3e6; border: none; border-radius: 10px; min-height: 38px; max-height: 150px; padding: 10px 12px; font-size: 16px; outline: none; box-sizing: border-box; resize: none; color: var(--text-main); }
 
         .toolbar { padding: 4px 16px 12px; display: flex; align-items: center; gap: 12px; }
         .icon-btn { color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: none; border: none; padding: 0; }
-        .icon-btn:active { opacity: 0.5; }
         
         .tag-scroll { flex: 1; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; }
-        .tag-pill { background: #e3e3e6; padding: 6px 14px; border-radius: 14px; font-size: 13px; color: #666; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+        .tag-pill { background: #e3e3e6; padding: 6px 14px; border-radius: 14px; font-size: 13px; color: #666; font-weight: 500; cursor: pointer; }
         .tag-pill.active { background: var(--accent); color: white; }
 
         .ios-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .ios-alert { background: white; width: 270px; border-radius: 14px; overflow: hidden; text-align: center; }
         .alert-body { padding: 20px 15px; border-bottom: 0.5px solid var(--line); }
         .alert-btn { flex: 1; padding: 12px; color: var(--ios-blue); font-weight: 600; cursor: pointer; border: none; background: none; font-size: 16px; }
-
-        /* 恐慌模式样式：完全隐藏 */
-        .panic-mode .app-container { opacity: 0; pointer-events: none; }
     </style>
 </head>
-<body id="body-root">
+<body>
 
 <div class="app-container">
     <header>
         <div class="header-left">
-            <div class="title" id="me-title">ME</div>
+            <div class="title" id="me-title" onclick="toggleHiddenMode()">ME</div>
         </div>
-        <div class="count-num" id="char-count">0</div>
+        <div class="count-num" id="char-count" ondblclick="hardLogout()">0</div>
     </header>
 
-    <div id="notes-container">
-        <div id="skeleton-loader">
-            <div class="skeleton-row skeleton-pulse"><div class="skeleton-ts"></div><div class="skeleton-text"></div></div>
-            <div class="skeleton-row skeleton-pulse"><div class="skeleton-ts"></div><div class="skeleton-text"></div><div class="skeleton-text short"></div></div>
-            <div class="skeleton-row skeleton-pulse"><div class="skeleton-ts"></div><div class="skeleton-text short"></div></div>
-        </div>
-    </div>
+    <div id="notes-container"></div>
 
     <footer>
         <div class="input-row">
-            <button class="sync-btn" type="button" onclick="App.syncAll()">SYNC</button>
+            <button class="sync-btn" type="button" onclick="syncAll()">SYNC</button>
             <textarea id="note-input" rows="1" placeholder=""></textarea>
         </div>
         <div class="toolbar">
-            <button class="icon-btn" type="button" onclick="App.toggleSearch()">
+            <button class="icon-btn" type="button" onclick="toggleSearch()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </button>
             <div class="tag-scroll" id="tag-bar"></div>
-            <button class="icon-btn" type="button" onmousedown="App.addNote(event)" ontouchstart="App.addNote(event)">
+            <button class="icon-btn" type="button" onmousedown="addNote(event)" ontouchstart="addNote(event)">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
             </button>
         </div>
@@ -161,332 +137,232 @@
 <div class="ios-overlay" id="ios-overlay">
     <div class="ios-alert">
         <div class="alert-body">
-            <div style="font-weight:600;font-size:17px;margin-bottom:5px;">Security</div>
+            <div style="font-weight:600;font-size:17px;margin-bottom:5px;">Z</div>
             <input type="password" class="alert-input" id="alert-input" style="width:100%; border:0.5px solid var(--line); padding:8px; border-radius:5px; margin-top:10px; box-sizing:border-box;" placeholder="Token">
         </div>
         <div style="display:flex;">
-            <button class="alert-btn" style="border-right:0.5px solid var(--line); font-weight:400;" onclick="App.closeAlert()">Cancel</button>
-            <button class="alert-btn" id="alert-confirm">OK</button>
+            <button class="alert-btn" style="border-right:0.5px solid var(--line); font-weight:400;" onclick="closeAlert()">取消</button>
+            <button class="alert-btn" id="alert-confirm">确定</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- 模块化代码结构 ---
-    const App = {
-        data: {
-            notes: [],
-            activeTag: null,
-            showHiddenNotes: false,
-            config: {
-                token: localStorage.getItem('gh_token') || '',
-                id: localStorage.getItem('gh_gist_id') || ''
-            },
-            longPressTimer: null
-        },
-
-        dom: {
-            input: document.getElementById('note-input'),
-            container: document.getElementById('notes-container'),
-            titleBtn: document.getElementById('me-title'),
-            countBtn: document.getElementById('char-count'),
-            body: document.getElementById('body-root'),
-            overlay: document.getElementById('ios-overlay'),
-            skel: document.getElementById('skeleton-loader')
-        },
-
-        init() {
-            // 输入框自适应
-            this.dom.input.addEventListener('input', () => {
-                this.dom.input.style.height = '38px';
-                this.dom.input.style.height = Math.min(this.dom.input.scrollHeight, 150) + 'px';
-            });
-
-            // ME 按钮：点击切换隐藏，长按恐慌模式
-            this.dom.titleBtn.addEventListener('mousedown', () => this.startLongPress());
-            this.dom.titleBtn.addEventListener('touchstart', () => this.startLongPress());
-            this.dom.titleBtn.addEventListener('mouseup', () => this.endLongPress());
-            this.dom.titleBtn.addEventListener('touchend', () => this.endLongPress());
-            this.dom.titleBtn.addEventListener('click', () => this.toggleHiddenMode());
-
-            // 统计按钮：双击登出
-            this.dom.countBtn.addEventListener('dblclick', () => this.hardLogout());
-
-            if(this.data.config.token && this.data.config.id) {
-                this.fetchData();
-            } else {
-                this.dom.skel.style.display = 'none'; // 无配置时不显示骨架
-            }
-        },
-
-        // --- 触感反馈 ---
-        haptic() {
-            if (navigator.vibrate) navigator.vibrate(10);
-        },
-
-        // --- 恐慌模式逻辑 ---
-        startLongPress() {
-            this.data.longPressTimer = setTimeout(() => {
-                this.haptic();
-                this.dom.body.classList.toggle('panic-mode'); // 切换恐慌模式
-            }, 1500); // 1.5秒触发
-        },
-        endLongPress() {
-            clearTimeout(this.data.longPressTimer);
-        },
-
-        // --- 核心业务逻辑 ---
-        toggleHiddenMode() {
-            // 如果处于恐慌模式，不响应点击
-            if(this.dom.body.classList.contains('panic-mode')) return;
-            
-            this.haptic();
-            this.data.showHiddenNotes = !this.data.showHiddenNotes;
-            this.dom.titleBtn.classList.toggle('active', this.data.showHiddenNotes);
-            this.render();
-        },
-
-        toggleNoteVisibility(id, e) {
-            if(e) e.stopPropagation();
-            this.haptic();
-            const note = this.data.notes.find(n => n.id === id);
-            if(note) {
-                note.isHidden = !note.isHidden;
-                this.render();
-                this.saveData(true); // 静默保存
-            }
-        },
-
-        addNote(e) {
-            if(e) { e.preventDefault(); e.stopPropagation(); }
-            this.haptic();
-
-            const rawText = this.dom.input.value.trim();
-            if (!rawText) return;
-
-            // 特殊指令
-            if (rawText === '098732 Delete') {
-                this.data.notes = this.data.notes.filter(n => !n.isHidden);
-                this.dom.input.value = ''; 
-                this.render(); 
-                this.saveData(); 
-                return;
-            }
-
-            let content = rawText;
-            if (/https?:\/\//.test(content) && !content.includes('#超链接')) content += ' #超链接';
-
-            const newNote = {
-                id: Date.now(),
-                content: content,
-                ts: new Date().toISOString(),
-                isHidden: false,
-                isPending: true // 乐观UI标记
-            };
-
-            // 1. 立即更新数据和UI
-            this.data.notes.push(newNote);
-            this.dom.input.value = '';
-            this.dom.input.style.height = '38px';
-            
-            if(this.data.activeTag) { this.data.activeTag = null; }
-            this.render(); // 立即渲染
-
-            // 2. 异步保存
-            this.saveData().then(() => {
-                // 保存成功后，移除 pending 状态
-                const target = this.data.notes.find(n => n.id === newNote.id);
-                if(target) {
-                    delete target.isPending;
-                    // 更新DOM类名即可，不必全量重绘
-                    const row = document.getElementById(`note-${newNote.id}`);
-                    if(row) row.classList.remove('sending');
-                }
-            });
-        },
-
-        // --- 渲染逻辑 ---
-        createNoteNode(n) {
-            if (n.isHidden && !this.data.showHiddenNotes) return null;
-
-            const row = document.createElement('div');
-            // 添加 sending 类实现透明度动画
-            row.className = `note-row ${n.isHidden ? 'is-hidden' : ''} ${n.isPending ? 'sending' : ''}`;
-            row.id = `note-${n.id}`;
-            row.onclick = () => { 
-                this.dom.input.value += `\n> ${n.content}\n`; 
-                this.dom.input.focus(); 
-            };
-            
-            const date = new Date(n.ts);
-            const btnSymbol = n.isHidden ? '＋' : '×';
-            
-            row.innerHTML = `
-                <div class="info-row">
-                    <span class="ts">${isNaN(date) ? "Just now" : date.toLocaleString('zh-CN')}</span>
-                    <span class="delete-btn" onclick="App.toggleNoteVisibility(${n.id}, event)">${btnSymbol}</span>
-                </div>
-                <div class="content-text">${this.format(n.content)}</div>
-            `;
-            return row;
-        },
-
-        render() {
-            // 保留骨架屏如果正在加载且无数据 (fetchData会处理移除)
-            const listContent = document.createElement('div');
-            let filtered = [...this.data.notes];
-            
-            if (this.data.activeTag) {
-                filtered = filtered.filter(n => n.content.includes(this.data.activeTag));
-            }
-
-            const fragment = document.createDocumentFragment();
-            filtered.forEach(n => {
-                const node = this.createNoteNode(n);
-                if(node) fragment.appendChild(node);
-            });
-            
-            this.dom.container.innerHTML = '';
-            this.dom.container.appendChild(fragment);
-            
-            this.updateTags();
-            this.updateCount();
-            
-            // 自动滚动到底部
-            this.dom.container.scrollTop = this.dom.container.scrollHeight;
-        },
-
-        format(t) {
-            return t.split('\n').map(l => {
-                const line = l.trim();
-                if (line.startsWith('>')) return `<span class="quote-line"><span class="quote-mark">″</span>${line.replace('>', '').trim()}</span>`;
-                return l.replace(/&/g,"&amp;").replace(/</g,"&lt;")
-                    .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                    .replace(/(https?:\/\/[^\s]+)/g, url => url.match(/\.(jpg|png|gif|webp)$/) ? `<img src="${url}" style="max-width:100%;border-radius:12px;margin-top:10px;display:block;">` : `<a href="${url}" target="_blank" style="color:var(--ios-blue);text-decoration:none;">${url}</a>`)
-                    .replace(/(#[^\s#]+)/g, '<span style="color:var(--ios-blue);font-weight:600;">$1</span>');
-            }).join('\n');
-        },
-
-        updateTags() {
-            const tags = new Set();
-            this.data.notes.forEach(n => (n.content.match(/#[^\s#]+/g)||[]).forEach(t => tags.add(t)));
-            const bar = document.getElementById('tag-bar');
-            bar.innerHTML = '';
-            tags.forEach(t => {
-                const p = document.createElement('div');
-                p.className = `tag-pill ${this.data.activeTag === t ? 'active' : ''}`; 
-                p.innerText = t;
-                p.onclick = (e) => { 
-                    e.stopPropagation(); 
-                    this.haptic();
-                    this.data.activeTag = (this.data.activeTag === t) ? null : t; 
-                    this.render(); 
-                };
-                bar.appendChild(p);
-            });
-        },
-
-        updateCount() {
-            let currentNotes = this.data.notes;
-            if (!this.data.showHiddenNotes) currentNotes = currentNotes.filter(n => !n.isHidden);
-            if (this.data.activeTag) currentNotes = currentNotes.filter(n => n.content.includes(this.data.activeTag));
-            const totalChars = currentNotes.reduce((acc, curr) => acc + curr.content.length, 0);
-            this.dom.countBtn.innerText = totalChars;
-        },
-
-        // --- 升级点：智能搜索 ---
-        toggleSearch() {
-            this.haptic();
-            const q = prompt("搜索内容 (空格隔开多个关键词):");
-            if (q) {
-                const keywords = q.toLowerCase().split(' ').filter(k => k);
-                // 查找同时包含所有关键词的消息
-                const found = this.data.notes.find(n => {
-                    const contentLower = n.content.toLowerCase();
-                    return keywords.every(k => contentLower.includes(k));
-                });
-
-                if (found) {
-                    if(found.isHidden && !this.data.showHiddenNotes) {
-                        this.data.showHiddenNotes = true;
-                        this.dom.titleBtn.classList.add('active');
-                    }
-                    this.data.activeTag = null; 
-                    this.render();
-                    setTimeout(() => {
-                        const el = document.getElementById(`note-${found.id}`);
-                        if(el) {
-                            el.scrollIntoView({behavior:'smooth', block:'center'});
-                            el.style.backgroundColor = 'rgba(52, 199, 89, 0.2)';
-                            setTimeout(() => el.style.backgroundColor = '', 2000);
-                        }
-                    }, 100);
-                } else {
-                    alert("未找到匹配内容");
-                }
-            }
-        },
-
-        // --- 数据与网络 ---
-        async fetchData() {
-            try {
-                // 显示骨架屏 (默认已在HTML中，这里确保显示)
-                // fetch
-                const r = await fetch(`https://api.github.com/gists/${this.data.config.id}`, {headers:{Authorization:`token ${this.data.config.token}`}});
-                const d = await r.json();
-                this.data.notes = JSON.parse(d.files['notes.json'].content || '[]');
-                this.render(); // 渲染会覆盖骨架屏
-            } catch(e) { console.error("Fetch Error"); }
-        },
-
-        async saveData(silent = false) {
-            try {
-                // 过滤掉临时属性 isPending 再保存
-                const cleanNotes = this.data.notes.map(({ isPending, ...keepAttrs }) => keepAttrs);
-                await fetch(`https://api.github.com/gists/${this.data.config.id}`, {
-                    method:'PATCH', headers:{Authorization:`token ${this.data.config.token}`},
-                    body: JSON.stringify({files:{'notes.json':{content:JSON.stringify(cleanNotes)}}})
-                });
-            } catch(e) { 
-                if(!silent) alert("Sync Failed"); 
-                console.error("Save Error");
-            }
-        },
-
-        // --- 系统功能 ---
-        showIOSAlert(onConfirm) {
-            this.dom.input.value = '';
-            this.dom.overlay.style.display = 'flex';
-            document.getElementById('alert-confirm').onclick = () => { 
-                const val = document.getElementById('alert-input').value;
-                onConfirm(val); 
-                this.closeAlert(); 
-            };
-        },
-        closeAlert() { this.dom.overlay.style.display = 'none'; },
-        
-        syncAll() { 
-            this.haptic();
-            if(!this.data.config.token) {
-                const id = prompt("Gist ID");
-                const tk = prompt("Token");
-                if(id && tk) { 
-                    localStorage.setItem('gh_gist_id', id); 
-                    localStorage.setItem('gh_token', tk); 
-                    window.location.reload(); 
-                }
-            } else {
-                this.fetchData();
-            }
-        },
-        
-        hardLogout() {
-            if(confirm("清空并退出？")) { localStorage.clear(); sessionStorage.clear(); window.location.reload(); }
-        }
+    let notes = [];
+    let activeTag = null;
+    let showHiddenNotes = false;
+    let config = {
+        token: localStorage.getItem('gh_token') || '',
+        id: localStorage.getItem('gh_gist_id') || ''
     };
 
-    // 启动应用
-    window.onload = () => App.init();
+    const input = document.getElementById('note-input');
+    const container = document.getElementById('notes-container');
+    const titleBtn = document.getElementById('me-title');
+
+    window.onload = () => {
+        input.addEventListener('input', () => {
+            input.style.height = '38px';
+            input.style.height = Math.min(input.scrollHeight, 150) + 'px';
+        });
+        if(config.token && config.id) fetchData();
+    };
+
+    function toggleHiddenMode() {
+        showHiddenNotes = !showHiddenNotes;
+        if(showHiddenNotes) {
+            titleBtn.classList.add('active');
+        } else {
+            titleBtn.classList.remove('active');
+        }
+        render();
+    }
+
+    function toggleNoteVisibility(id, e) {
+        if(e) e.stopPropagation(); // 防止触发引用
+        const note = notes.find(n => n.id === id);
+        if(note) {
+            note.isHidden = !note.isHidden;
+            render();
+            saveData();
+        }
+    }
+
+    function addNote(e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); }
+        
+        const rawText = input.value.trim();
+        if (!rawText) return;
+
+        if (rawText === '098732 Delete') {
+            notes = notes.filter(n => !n.isHidden);
+            input.value = ''; render(); saveData(); return;
+        }
+
+        let content = rawText;
+        if (/https?:\/\//.test(content) && !content.includes('#超链接')) content += ' #超链接';
+
+        const newNote = {
+            id: Date.now(),
+            content: content,
+            ts: new Date().toISOString(),
+            isHidden: false
+        };
+
+        notes.push(newNote);
+        
+        input.value = '';
+        input.style.height = '38px';
+
+        requestAnimationFrame(() => {
+            if(activeTag) { activeTag = null; render(); }
+            const row = createNoteNode(newNote);
+            if(row) container.appendChild(row); 
+            container.scrollTop = container.scrollHeight;
+            updateCount();
+            updateTags();
+        });
+
+        saveData();
+    }
+
+    function createNoteNode(n) {
+        if (n.isHidden && !showHiddenNotes) return null;
+
+        const row = document.createElement('div');
+        row.className = `note-row ${n.isHidden ? 'is-hidden' : ''}`;
+        row.id = `note-${n.id}`;
+        row.onclick = () => { input.value += `\n> ${n.content}\n`; input.focus(); };
+        
+        const date = new Date(n.ts);
+        const btnSymbol = n.isHidden ? '＋' : '×';
+        
+        // 结构更新：Delete 按钮放入 info-row，紧跟时间戳
+        row.innerHTML = `
+            <div class="info-row">
+                <span class="ts">${isNaN(date) ? "刚才" : date.toLocaleString('zh-CN')}</span>
+                <span class="delete-btn" onclick="toggleNoteVisibility(${n.id}, event)">${btnSymbol}</span>
+            </div>
+            <div class="content-text">${format(n.content)}</div>
+        `;
+        return row;
+    }
+
+    function render() {
+        container.innerHTML = '';
+        let filtered = [...notes];
+        if (activeTag) filtered = filtered.filter(n => n.content.includes(activeTag));
+
+        const fragment = document.createDocumentFragment();
+        filtered.forEach(n => {
+            const node = createNoteNode(n);
+            if(node) fragment.appendChild(node);
+        });
+        container.appendChild(fragment);
+        updateTags();
+        updateCount();
+        container.scrollTop = container.scrollHeight;
+    }
+
+    function updateCount() {
+        let currentNotes = notes;
+        if (!showHiddenNotes) {
+            currentNotes = notes.filter(n => !n.isHidden);
+        }
+        if (activeTag) {
+            currentNotes = currentNotes.filter(n => n.content.includes(activeTag));
+        }
+        const totalChars = currentNotes.reduce((acc, curr) => acc + curr.content.length, 0);
+        document.getElementById('char-count').innerText = totalChars;
+    }
+
+    function format(t) {
+        return t.split('\n').map(l => {
+            const line = l.trim();
+            if (line.startsWith('>')) return `<span class="quote-line"><span class="quote-mark">″</span>${line.replace('>', '').trim()}</span>`;
+            return l.replace(/&/g,"&amp;").replace(/</g,"&lt;")
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/(https?:\/\/[^\s]+)/g, url => url.match(/\.(jpg|png|gif|webp)$/) ? `<img src="${url}" style="max-width:100%;border-radius:12px;margin-top:10px;display:block;">` : `<a href="${url}" target="_blank" style="color:var(--ios-blue);text-decoration:none;">${url}</a>`)
+                .replace(/(#[^\s#]+)/g, '<span style="color:var(--ios-blue);font-weight:600;">$1</span>');
+        }).join('\n');
+    }
+
+    function updateTags() {
+        const tags = new Set();
+        notes.forEach(n => (n.content.match(/#[^\s#]+/g)||[]).forEach(t => tags.add(t)));
+        const bar = document.getElementById('tag-bar');
+        bar.innerHTML = '';
+        tags.forEach(t => {
+            const p = document.createElement('div');
+            p.className = `tag-pill ${activeTag === t ? 'active' : ''}`; 
+            p.innerText = t;
+            p.onclick = (e) => { e.stopPropagation(); activeTag = (activeTag === t) ? null : t; render(); };
+            bar.appendChild(p);
+        });
+    }
+
+    function toggleSearch() {
+        const q = prompt("搜索内容:");
+        if (q) {
+            const found = notes.find(n => n.content.toLowerCase().includes(q.toLowerCase()));
+            if (found) {
+                if(found.isHidden && !showHiddenNotes) {
+                    showHiddenNotes = true;
+                    titleBtn.classList.add('active');
+                }
+                activeTag = null; 
+                render();
+                setTimeout(() => {
+                    const el = document.getElementById(`note-${found.id}`);
+                    if(el) {
+                        el.scrollIntoView({behavior:'smooth', block:'center'});
+                        el.style.backgroundColor = 'rgba(52, 199, 89, 0.2)';
+                        setTimeout(() => el.style.backgroundColor = '', 2000);
+                    }
+                }, 100);
+            }
+        }
+    }
+
+    function showIOSAlert(onConfirm) {
+        const overlay = document.getElementById('ios-overlay');
+        const inputField = document.getElementById('alert-input');
+        inputField.value = '';
+        overlay.style.display = 'flex';
+        document.getElementById('alert-confirm').onclick = () => { onConfirm(inputField.value); closeAlert(); };
+    }
+
+    function closeAlert() { document.getElementById('ios-overlay').style.display = 'none'; }
+
+    function hardLogout() {
+        if(confirm("清空并退出？")) { localStorage.clear(); sessionStorage.clear(); window.location.reload(); }
+    }
+
+    async function fetchData() {
+        try {
+            const r = await fetch(`https://api.github.com/gists/${config.id}`, {headers:{Authorization:`token ${config.token}`}});
+            const d = await r.json();
+            notes = JSON.parse(d.files['notes.json'].content || '[]');
+            render();
+        } catch(e) { console.error("Fetch Error"); }
+    }
+
+    async function saveData() {
+        try {
+            await fetch(`https://api.github.com/gists/${config.id}`, {
+                method:'PATCH', headers:{Authorization:`token ${config.token}`},
+                body: JSON.stringify({files:{'notes.json':{content:JSON.stringify(notes)}}})
+            });
+        } catch(e) { console.error("Save Error"); }
+    }
+
+    function syncAll() { 
+        if(!config.token) {
+            const id = prompt("Gist ID");
+            const tk = prompt("Token");
+            if(id && tk) { localStorage.setItem('gh_gist_id', id); localStorage.setItem('gh_token', tk); window.location.reload(); }
+        } else fetchData();
+    }
 </script>
 </body>
 </html>
