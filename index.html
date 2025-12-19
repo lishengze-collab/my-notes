@@ -1,10 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>MEMO PN-3.3.0</title>
+    <title>MEMO PN-3.3.1</title>
     <style>
         :root {
             --bg-main: #f2f2f7; --text-main: #1c1c1e; --text-sec: #8e8e93;
@@ -15,7 +14,7 @@
             --bg-main: #000000; --text-main: #ffffff; --text-sec: #8e8e93;
             --line: #38383a;
         }
-        /* PC预览适配逻辑 */
+        
         @media (min-width: 500px) {
             body { background: #333 !important; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
             .app-container { width: 393px; height: 852px; border: 10px solid #1a1a1a; border-radius: 55px; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); background: var(--bg-main); }
@@ -27,37 +26,46 @@
         }
 
         body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; transition: background 0.3s; overflow: hidden; }
-        .app-container { display: flex; flex-direction: column; }
+        .app-container { display: flex; flex-direction: column; position: relative; }
 
-        header { padding: calc(var(--safe-top) + 50px) 20px 10px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-        .header-left { display: flex; align-items: center; gap: 10px; }
+        header { padding: calc(var(--safe-top) + 45px) 20px 10px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
         .title { font-size: 17px; font-weight: 800; letter-spacing: 1px; color: var(--text-sec); cursor: pointer; }
-        .theme-btn { font-size: 16px; cursor: pointer; }
+        .theme-btn { font-size: 16px; cursor: pointer; margin-left: 10px; }
         .count-btn { font-size: 13px; color: var(--text-sec); font-weight: 600; cursor: pointer; }
 
-        #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px 200px; -webkit-overflow-scrolling: touch; }
-        .note-row { border-left: 1.5px solid var(--line); padding-left: 15px; margin-bottom: 25px; transition: all 0.3s; position: relative; }
-        .note-row.hidden-note { opacity: 0.15; filter: blur(3px); }
+        #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px 180px; -webkit-overflow-scrolling: touch; }
+        .note-row { border-left: 2px solid var(--line); padding-left: 15px; margin-bottom: 25px; transition: all 0.3s; position: relative; }
+        .note-row.hidden-note { opacity: 0.1; filter: blur(5px); pointer-events: none; }
         .note-row.highlight { background: rgba(52, 199, 89, 0.2); border-radius: 0 8px 8px 0; }
-        .ts { font-size: 11px; color: var(--text-sec); margin-bottom: 5px; display: flex; justify-content: space-between; }
-        .content-text { font-size: 16px; line-height: 1.5; color: var(--text-main); word-break: break-all; white-space: pre-wrap; }
-        .content-text img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
-        .tag-link { color: var(--ios-blue); font-weight: 600; cursor: pointer; margin-right: 5px; }
+        .ts { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; font-weight: 500; }
+        .content-text { font-size: 18px; line-height: 1.6; color: var(--text-main); word-break: break-all; white-space: pre-wrap; }
+        .content-text img { max-width: 100%; border-radius: 12px; margin-top: 10px; }
 
-        footer { position: absolute; bottom: 0; width: 100%; background: var(--bg-main); border-top: 0.5px solid var(--line); padding-bottom: var(--safe-bottom); }
-        .input-row { padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
-        .sync-btn { background: var(--accent); color: white; border: none; height: 36px; padding: 0 12px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
-        #note-input { flex: 1; background: #e3e3e6; border: none; border-radius: 10px; height: 36px; padding: 8px 12px; font-size: 15px; outline: none; box-sizing: border-box; resize: none; overflow-y: auto; }
-        .dark-mode #note-input { background: #1c1c1e; color: white; }
+        footer { position: absolute; bottom: 0; width: 100%; background: var(--bg-main); border-top: 0.5px solid var(--line); padding-bottom: var(--safe-bottom); z-index: 100; }
+        .input-row { padding: 12px 16px 8px; display: flex; align-items: center; gap: 8px; }
+        .sync-btn { background: var(--accent); color: white; border: none; height: 38px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; }
+        #note-input { flex: 1; background: #e3e3e6; border: none; border-radius: 10px; min-height: 38px; max-height: 150px; padding: 10px 12px; font-size: 16px; outline: none; box-sizing: border-box; resize: none; color: var(--text-main); }
+        .dark-mode #note-input { background: #1c1c1e; }
 
-        .toolbar { padding: 0 16px 15px; display: flex; align-items: center; gap: 12px; }
+        .toolbar { padding: 4px 16px 12px; display: flex; align-items: center; gap: 12px; }
         .search-icon { color: var(--accent); cursor: pointer; display: flex; align-items: center; }
         .tag-scroll { flex: 1; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
         .tag-scroll::-webkit-scrollbar { display: none; }
-        .tag-pill { background: #e3e3e6; padding: 5px 12px; border-radius: 12px; font-size: 12px; color: #666; font-weight: 500; }
+        .tag-pill { background: #e3e3e6; padding: 6px 14px; border-radius: 14px; font-size: 13px; color: #666; font-weight: 500; }
         .dark-mode .tag-pill { background: #1c1c1e; color: #aaa; }
-        .action-circle { width: 36px; height: 36px; border-radius: 50%; background: #e3e3e6; border: none; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.3s; }
-        .can-send { background: var(--accent); color: white; }
+        .action-circle { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); color: white; border: none; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: 0.2s; cursor: pointer; opacity: 0.9; }
+        .action-circle:active { transform: scale(0.9); }
+
+        /* iOS Style Alert */
+        .ios-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+        .ios-alert { background: white; width: 270px; border-radius: 14px; overflow: hidden; text-align: center; }
+        .dark-mode .ios-alert { background: #1c1c1e; color: white; }
+        .alert-body { padding: 20px 15px; border-bottom: 0.5px solid var(--line); }
+        .alert-title { font-weight: 600; font-size: 17px; margin-bottom: 5px; }
+        .alert-input { width: 100%; border: 0.5px solid var(--line); padding: 8px; border-radius: 5px; margin-top: 10px; outline: none; box-sizing: border-box; }
+        .alert-btns { display: flex; }
+        .alert-btn { flex: 1; padding: 12px; color: var(--ios-blue); font-weight: 600; cursor: pointer; border: none; background: none; font-size: 16px; }
+        .alert-btn:first-child { border-right: 0.5px solid var(--line); font-weight: 400; }
     </style>
 </head>
 <body>
@@ -66,7 +74,7 @@
     <div class="island"></div>
     <header>
         <div class="header-left">
-            <div class="title" id="memo-title" onclick="unlockHidden()">MEMO</div>
+            <div class="title" id="memo-title" onclick="handleMemoClick()">MEMO</div>
             <div class="theme-btn" onclick="toggleTheme()">☀️</div>
         </div>
         <div class="count-btn" id="word-count" ondblclick="hardLogout()">Total: 0</div>
@@ -77,16 +85,29 @@
     <footer>
         <div class="input-row">
             <button class="sync-btn" onclick="syncAll()">SYNC</button>
-            <textarea id="note-input" rows="1" placeholder=""></textarea>
+            <textarea id="note-input" rows="1"></textarea>
         </div>
         <div class="toolbar">
             <div class="search-icon" onclick="toggleSearch()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </div>
             <div class="tag-scroll" id="tag-bar"></div>
             <button class="action-circle" id="action-btn" onclick="handleAction()">⇥</button>
         </div>
     </footer>
+</div>
+
+<div class="ios-overlay" id="ios-overlay">
+    <div class="ios-alert">
+        <div class="alert-body" id="alert-body">
+            <div class="alert-title" id="alert-title">Z</div>
+            <input type="password" class="alert-input" id="alert-input" placeholder="Token">
+        </div>
+        <div class="alert-btns">
+            <button class="alert-btn" onclick="closeAlert()">Cancel</button>
+            <button class="alert-btn" id="alert-confirm">OK</button>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -102,28 +123,21 @@
     const input = document.getElementById('note-input');
     const actionBtn = document.getElementById('action-btn');
 
-    // 初始化
     window.onload = () => {
-        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+        if(localStorage.getItem('theme') === 'dark') {
+            document.body.classList.add('dark-mode');
+            document.querySelector('.theme-btn').innerText = '🌙';
+        }
         input.addEventListener('input', updateUI);
         input.addEventListener('keydown', handleKey);
         if(config.token && config.id) fetchData();
     };
 
     function updateUI() {
-        const val = input.value;
-        // 动态高度
-        input.style.height = '36px';
-        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
-        // 按钮切换
-        if(val.length > 0) {
-            actionBtn.classList.add('can-send');
-            actionBtn.innerText = '↑';
-        } else {
-            actionBtn.classList.remove('can-send');
-            actionBtn.innerText = '⇥';
-        }
-        document.getElementById('word-count').innerText = `Total: ${JSON.stringify(notes).length}`;
+        input.style.height = '38px';
+        input.style.height = Math.min(input.scrollHeight, 150) + 'px';
+        actionBtn.innerText = input.value.length > 0 ? '↑' : '⇥';
+        document.getElementById('word-count').innerText = `Total: ${notes.length}`;
     }
 
     function handleKey(e) {
@@ -132,53 +146,44 @@
             const delay = now - lastEnterTime;
             lastEnterTime = now;
             
-            if(isSearchMode) {
-                e.preventDefault();
-                doSearch();
-                return;
-            }
+            if(isSearchMode) { e.preventDefault(); doSearch(); return; }
 
-            // 双击判定：普通态300ms，长文本态(>100字)250ms
             const limit = input.value.length > 100 ? 250 : 350;
             if(delay < limit) {
                 e.preventDefault();
-                // 移除刚才单击产生的换行
                 input.value = input.value.slice(0, -1);
                 addNote();
             }
         }
     }
 
-    function handleAction() {
-        if(input.value.length > 0) addNote();
-        else insertTab();
-    }
-
-    function insertTab() {
-        const start = input.selectionStart;
-        input.value = input.value.substring(0, start) + "    " + input.value.substring(input.selectionEnd);
-        input.selectionStart = input.selectionEnd = start + 4;
-        input.focus();
+    function handleMemoClick() {
+        if(config.verified) {
+            config.verified = false;
+            sessionStorage.removeItem('memo_auth');
+            render();
+        } else {
+            showIOSAlert("Z", true, (val) => {
+                if(val === config.token) {
+                    config.verified = true;
+                    sessionStorage.setItem('memo_auth', 'true');
+                    render();
+                }
+            });
+        }
     }
 
     function addNote() {
         let text = input.value.trim();
         if(!text) return;
-        
-        // 自毁指令
         if(text === '098732 Delete') {
             notes = notes.filter(n => !n.isHidden);
-            input.value = '';
-            saveData(); return;
+            input.value = ''; saveData(); return;
         }
-
-        // 自动识别超链接标签
         if(/https?:\/\//.test(text) && !text.includes('#超链接')) text += ' #超链接';
 
-        notes.push({ id: Date.now(), content: text, ts: new Date().toISOString(), isHidden: false });
-        input.value = '';
-        updateUI();
-        saveData();
+        notes.unshift({ id: Date.now(), content: text, ts: new Date().toISOString(), isHidden: false });
+        input.value = ''; updateUI(); saveData();
     }
 
     function render() {
@@ -190,8 +195,13 @@
             row.className = `note-row ${n.isHidden ? 'hidden-note' : ''}`;
             row.id = `note-${n.id}`;
             row.onclick = () => { input.value += `\n> ${n.content}\n`; input.focus(); updateUI(); };
+            
+            // Format Timestamp
+            const dateObj = new Date(n.ts);
+            const timeStr = isNaN(dateObj) ? "Just now" : dateObj.toLocaleString();
+
             row.innerHTML = `
-                <div class="ts"><span>${new Date(n.ts).toLocaleString()}</span><span onclick="event.stopPropagation();toggleHide(${n.id})">×</span></div>
+                <div class="ts">${timeStr}</div>
                 <div class="content-text">${format(n.content)}</div>
             `;
             container.appendChild(row);
@@ -202,9 +212,8 @@
     function format(t) {
         return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")
                 .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                .replace(/\*(.*?)\*/g, '<i>$1</i>')
-                .replace(/(https?:\/\/[^\s]+)/g, url => url.match(/\.(jpg|png|gif|webp)$/) ? `<img src="${url}">` : `<a href="${url}" class="tag-link">${url}</a>`)
-                .replace(/(#[^\s#]+)/g, '<span class="tag-link">$1</span>');
+                .replace(/(https?:\/\/[^\s]+)/g, url => url.match(/\.(jpg|png|gif|webp)$/) ? `<img src="${url}">` : `<a href="${url}" target="_blank" style="color:var(--ios-blue);text-decoration:none;">${url}</a>`)
+                .replace(/(#[^\s#]+)/g, '<span style="color:var(--ios-blue);font-weight:600;">$1</span>');
     }
 
     function updateTags() {
@@ -216,16 +225,21 @@
             const p = document.createElement('div');
             p.className = 'tag-pill'; p.innerText = t;
             let timer;
-            p.ontouchstart = () => timer = setTimeout(() => deleteTag(t), 800);
-            p.ontouchend = () => clearTimeout(timer);
+            p.addEventListener('touchstart', () => timer = setTimeout(() => {
+                showIOSAlert(`Delete ${t}?`, false, () => {
+                    notes.forEach(n => n.content = n.content.replace(t, '').trim());
+                    saveData();
+                });
+            }, 800));
+            p.addEventListener('touchend', () => clearTimeout(timer));
             bar.appendChild(p);
         });
     }
 
     function toggleSearch() {
         isSearchMode = !isSearchMode;
-        input.placeholder = isSearchMode ? "搜索内容并按回车..." : "";
-        input.style.background = isSearchMode ? "#fff9c4" : "";
+        input.placeholder = isSearchMode ? "Search notes..." : "";
+        input.style.background = isSearchMode ? (document.body.classList.contains('dark-mode') ? "#2c2c2e" : "#fff9c4") : "";
         if(!isSearchMode) render();
     }
 
@@ -234,47 +248,47 @@
         const target = notes.find(n => n.content.toLowerCase().includes(q));
         if(target) {
             const el = document.getElementById(`note-${target.id}`);
-            el.scrollIntoView({behavior:'smooth'});
+            el.scrollIntoView({behavior:'smooth', block:'center'});
             el.classList.add('highlight');
             setTimeout(() => el.classList.remove('highlight'), 2000);
         }
     }
 
-    function unlockHidden() {
-        if(config.verified) { 
-            config.verified = false; 
-            sessionStorage.removeItem('memo_auth');
-            render(); return; 
-        }
-        const pw = prompt("ENTER TOKEN TO UNLOCK:");
-        if(pw === config.token) {
-            config.verified = true;
-            sessionStorage.setItem('memo_auth', 'true');
-            render();
+    function handleAction() {
+        if(input.value.length > 0) addNote();
+        else {
+            const start = input.selectionStart;
+            input.value = input.value.substring(0, start) + "    " + input.value.substring(input.selectionEnd);
+            input.selectionStart = input.selectionEnd = start + 4;
+            updateUI();
         }
     }
 
-    function deleteTag(t) {
-        if(confirm(`删除所有笔记中的标签 ${t}？`)) {
-            notes.forEach(n => n.content = n.content.replace(t, '').trim());
-            saveData();
-        }
+    function showIOSAlert(title, showInput, onConfirm) {
+        const overlay = document.getElementById('ios-overlay');
+        const inputField = document.getElementById('alert-input');
+        document.getElementById('alert-title').innerText = title;
+        inputField.style.display = showInput ? 'block' : 'none';
+        inputField.value = '';
+        overlay.style.display = 'flex';
+        document.getElementById('alert-confirm').onclick = () => {
+            onConfirm(inputField.value);
+            closeAlert();
+        };
     }
 
-    function toggleHide(id) {
-        const n = notes.find(x => x.id === id);
-        if(n) { n.isHidden = !n.isHidden; saveData(); }
-    }
+    function closeAlert() { document.getElementById('ios-overlay').style.display = 'none'; }
 
     function toggleTheme() {
         const isDark = document.body.classList.toggle('dark-mode');
         localStorage.setItem('theme', isDark ? 'dark' : 'light');
+        document.querySelector('.theme-btn').innerText = isDark ? '🌙' : '☀️';
     }
 
     function hardLogout() {
-        if(confirm("确定清空缓存并退出？")) {
+        showIOSAlert("Logout & Clear?", false, () => {
             localStorage.clear(); sessionStorage.clear(); window.location.reload();
-        }
+        });
     }
 
     async function fetchData() {
@@ -282,8 +296,8 @@
             const r = await fetch(`https://api.github.com/gists/${config.id}`, {headers:{Authorization:`token ${config.token}`}});
             const d = await r.json();
             notes = JSON.parse(d.files['notes.json'].content || '[]');
-            render();
-        } catch(e) { alert("同步失败，请检查配置"); }
+            render(); updateUI();
+        } catch(e) { console.error("Sync Error"); }
     }
 
     async function saveData() {
@@ -298,13 +312,15 @@
 
     function syncAll() { 
         if(!config.token) {
-            const t = prompt("GitHub Token:");
-            const g = prompt("Gist ID:");
-            if(t && g) {
-                localStorage.setItem('gh_token', t);
-                localStorage.setItem('gh_gist_id', g);
-                window.location.reload();
-            }
+            showIOSAlert("Setup Gist ID", true, (id) => {
+                showIOSAlert("Setup Token", true, (tk) => {
+                    if(id && tk) {
+                        localStorage.setItem('gh_gist_id', id);
+                        localStorage.setItem('gh_token', tk);
+                        window.location.reload();
+                    }
+                });
+            });
         } else fetchData();
     }
 </script>
