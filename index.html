@@ -4,352 +4,309 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <title>Private Memo PN-3.1.9 Final</title>
+    <title>MEMO PN-3.3.0</title>
     <style>
         :root {
-            --bg-main: #f9f9f9; 
-            --text-main: #1c1c1e;
-            --text-secondary: #8e8e93;
-            --accent-green: #34c759; 
-            --accent-blue: #007aff;
-            --line-color: #c6c6c8;
-            --safe-top: env(safe-area-inset-top);
-            --safe-bottom: env(safe-area-inset-bottom);
+            --bg-main: #f2f2f7; --text-main: #1c1c1e; --text-sec: #8e8e93;
+            --accent: #34c759; --ios-blue: #007aff; --line: #c6c6c8;
+            --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
+        }
+        .dark-mode {
+            --bg-main: #000000; --text-main: #ffffff; --text-sec: #8e8e93;
+            --line: #38383a;
+        }
+        /* PC预览适配逻辑 */
+        @media (min-width: 500px) {
+            body { background: #333 !important; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+            .app-container { width: 393px; height: 852px; border: 10px solid #1a1a1a; border-radius: 55px; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); background: var(--bg-main); }
+            .island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 110px; height: 35px; background: black; border-radius: 20px; z-index: 2000; }
+        }
+        @media (max-width: 500px) {
+            body, .app-container { width: 100%; height: 100vh; margin: 0; background: var(--bg-main); }
+            .island { display: none; }
         }
 
-        html, body { 
-            background-color: var(--bg-main); 
-            margin: 0; padding: 0; height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
-            display: flex; flex-direction: column; overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; transition: background 0.3s; overflow: hidden; }
+        .app-container { display: flex; flex-direction: column; }
 
-        /* --- Header: 适配 iPhone 17 灵动岛下移 --- */
-        header {
-            background: var(--bg-main);
-            position: relative;
-            padding-top: calc(var(--safe-top) + 12px); 
-            padding-left: 18px; padding-right: 18px;
-            display: flex; justify-content: space-between; align-items: center; z-index: 1001;
-            min-height: 50px;
-        }
+        header { padding: calc(var(--safe-top) + 50px) 20px 10px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .title { font-size: 17px; font-weight: 800; letter-spacing: 1px; color: var(--text-sec); cursor: pointer; }
+        .theme-btn { font-size: 16px; cursor: pointer; }
+        .count-btn { font-size: 13px; color: var(--text-sec); font-weight: 600; cursor: pointer; }
 
-        h1 { font-size: 15px; font-weight: 600; color: var(--text-secondary); margin: 0; letter-spacing: -0.3px; cursor: pointer; }
+        #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px 200px; -webkit-overflow-scrolling: touch; }
+        .note-row { border-left: 1.5px solid var(--line); padding-left: 15px; margin-bottom: 25px; transition: all 0.3s; position: relative; }
+        .note-row.hidden-note { opacity: 0.15; filter: blur(3px); }
+        .note-row.highlight { background: rgba(52, 199, 89, 0.2); border-radius: 0 8px 8px 0; }
+        .ts { font-size: 11px; color: var(--text-sec); margin-bottom: 5px; display: flex; justify-content: space-between; }
+        .content-text { font-size: 16px; line-height: 1.5; color: var(--text-main); word-break: break-all; white-space: pre-wrap; }
+        .content-text img { max-width: 100%; border-radius: 12px; margin-top: 8px; }
+        .tag-link { color: var(--ios-blue); font-weight: 600; cursor: pointer; margin-right: 5px; }
 
-        .search-trigger {
-            background: none; border: none; padding: 8px 0; color: var(--accent-green);
-            cursor: pointer; display: flex; align-items: center;
-        }
+        footer { position: absolute; bottom: 0; width: 100%; background: var(--bg-main); border-top: 0.5px solid var(--line); padding-bottom: var(--safe-bottom); }
+        .input-row { padding: 12px 16px; display: flex; align-items: center; gap: 8px; }
+        .sync-btn { background: var(--accent); color: white; border: none; height: 36px; padding: 0 12px; border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+        #note-input { flex: 1; background: #e3e3e6; border: none; border-radius: 10px; height: 36px; padding: 8px 12px; font-size: 15px; outline: none; box-sizing: border-box; resize: none; overflow-y: auto; }
+        .dark-mode #note-input { background: #1c1c1e; color: white; }
 
-        /* --- 搜索框下移 --- */
-        #search-wrapper {
-            background: var(--bg-main);
-            padding: 8px 16px 12px 16px;
-            display: none; z-index: 1000;
-            animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        #search-input { 
-            width: 100%; background: #e3e3e6; border: none; border-radius: 12px; 
-            padding: 10px 14px; font-size: 17px; outline: none; box-sizing: border-box;
-        }
-
-        /* --- 动态标签栏 --- */
-        #tag-bar {
-            padding: 8px 16px 12px 16px;
-            display: flex; gap: 8px; overflow-x: auto; white-space: nowrap;
-            background: var(--bg-main);
-            -webkit-overflow-scrolling: touch;
-        }
-        #tag-bar::-webkit-scrollbar { display: none; }
-        .tag-pill {
-            background: #e3e3e6; color: var(--text-main); padding: 6px 14px;
-            border-radius: 16px; font-size: 13px; font-weight: 500;
-        }
-        .tag-pill.active { background: var(--accent-blue); color: white; }
-
-        /* --- Journal List --- */
-        #notes-container {
-            flex: 1; overflow-y: auto; padding: 10px 20px 220px 20px;
-            display: flex; flex-direction: column; -webkit-overflow-scrolling: touch;
-        }
-
-        .note-row { 
-            position: relative; padding-left: 18px; margin-bottom: 30px;
-            border-left: 1.2px solid #d1d1d6; animation: fadeIn 0.3s ease-out;
-        }
-
-        .timestamp-row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-        .timestamp { font-size: 11px; color: var(--text-secondary); font-weight: 600; font-variant-numeric: tabular-nums; }
-        .hide-btn { font-size: 18px; color: var(--text-secondary); cursor: pointer; padding: 0 5px; line-height: 1; opacity: 0.4; }
-
-        .journal-content { font-size: 17px; line-height: 1.6; color: var(--text-main); word-wrap: break-word; white-space: pre-wrap; }
-        .journal-content img { max-width: 100%; border-radius: 14px; margin-top: 12px; display: block; }
-        .hashtag { color: var(--accent-blue); font-weight: 600; cursor: pointer; }
-
-        .note-row.hidden-state { opacity: 0.2; filter: blur(0.5px); }
-        .empty-hint { text-align: center; color: var(--text-secondary); font-size: 14px; margin-top: 80px; }
-
-        /* --- Footer & Toolbar --- */
-        .footer-wrapper {
-            position: fixed; bottom: 0; left: 0; right: 0; background: rgba(249, 249, 249, 0.96); 
-            backdrop-filter: blur(25px) saturate(190%);
-            border-top: 0.5px solid var(--line-color); z-index: 1002;
-            padding-bottom: var(--safe-bottom);
-        }
-        
-        .toolbar {
-            display: flex; gap: 24px; padding: 8px 18px 4px 18px;
-        }
-        .tool-btn {
-            background: none; border: none; color: var(--accent-green); font-size: 16px; 
-            font-weight: 700; padding: 4px; cursor: pointer;
-        }
-
-        .input-wrapper {
-            padding: 8px 18px 14px 18px;
-            display: flex; align-items: center; gap: 12px;
-        }
-
-        .sync-btn-mini {
-            font-size: 13px; font-weight: 700; color: #ffffff;
-            background: var(--accent-green); border: none;
-            padding: 7px 14px; border-radius: 8px; white-space: nowrap;
-        }
-
-        #note-input {
-            flex: 1; border: none; background: #e3e3e6; border-radius: 20px;
-            padding: 10px 16px; font-size: 17px; outline: none; font-family: inherit;
-            resize: none; max-height: 120px; min-height: 40px; box-sizing: border-box;
-        }
-
-        #send-btn {
-            background: var(--accent-green); color: white; border: none; border-radius: 50%;
-            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
-        }
-
-        /* --- Settings Modal --- */
-        #settings-modal {
-            position:fixed; top:0; left:0; right:0; bottom:0; display:none; 
-            align-items:center; justify-content:center; z-index:2000; 
-            background:rgba(0,0,0,0.3); backdrop-filter: blur(15px);
-        }
-        .modal-content {
-            background: #ffffff; width: 300px; padding: 28px 24px; 
-            border-radius: 28px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-            transform: scale(0.9); transition: transform 0.2s;
-        }
-        #settings-modal.active .modal-content { transform: scale(1); }
-        .modal-content input {
-            width: 100%; margin: 6px 0 12px 0; padding: 12px 16px; 
-            border: 1px solid #efefef; background: #f5f5f7;
-            border-radius: 14px; box-sizing: border-box; font-size: 15px; outline: none;
-        }
-        .save-btn {
-            background: var(--accent-green); color: white; border: none; 
-            padding: 14px; border-radius: 14px; width: 100%; font-weight: 700;
-        }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        .toolbar { padding: 0 16px 15px; display: flex; align-items: center; gap: 12px; }
+        .search-icon { color: var(--accent); cursor: pointer; display: flex; align-items: center; }
+        .tag-scroll { flex: 1; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
+        .tag-scroll::-webkit-scrollbar { display: none; }
+        .tag-pill { background: #e3e3e6; padding: 5px 12px; border-radius: 12px; font-size: 12px; color: #666; font-weight: 500; }
+        .dark-mode .tag-pill { background: #1c1c1e; color: #aaa; }
+        .action-circle { width: 36px; height: 36px; border-radius: 50%; background: #e3e3e6; border: none; display: flex; align-items: center; justify-content: center; font-size: 18px; transition: 0.3s; }
+        .can-send { background: var(--accent); color: white; }
     </style>
 </head>
 <body>
 
-<header>
-    <button class="search-trigger" onclick="toggleSearch()">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-    </button>
-    <h1 onclick="clearFilter()">Private Memo</h1>
-</header>
-
-<div id="search-wrapper">
-    <input type="text" id="search-input" oninput="handleSearch()">
-</div>
-
-<div id="tag-bar"></div>
-
-<div id="notes-container"></div>
-
-<div class="footer-wrapper">
-    <div class="toolbar">
-        <button class="tool-btn" onclick="formatText('bold')">B</button>
-        <button class="tool-btn" onclick="formatText('italic')" style="font-style: italic;">I</button>
-        <button class="tool-btn" onclick="formatText('color')">🎨</button>
-    </div>
-    <div class="input-wrapper">
-        <button class="sync-btn-mini" onclick="openSettings()">同步</button>
-        <textarea id="note-input" rows="1"></textarea>
-        <button id="send-btn" onclick="addNote()">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path></svg>
-        </button>
-    </div>
-</div>
-
-<div id="settings-modal">
-    <div class="modal-content">
-        <h3>Settings</h3>
-        <input type="password" id="github-token" placeholder="GitHub Token">
-        <input type="text" id="gist-id" placeholder="Gist ID">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin:15px 4px;">
-            <span style="font-size:14px; color: var(--text-secondary); font-weight: 500;">显示隐藏内容</span>
-            <input type="checkbox" id="show-hidden-switch" onchange="toggleShowHidden()" style="width:20px; height:20px;">
+<div class="app-container">
+    <div class="island"></div>
+    <header>
+        <div class="header-left">
+            <div class="title" id="memo-title" onclick="unlockHidden()">MEMO</div>
+            <div class="theme-btn" onclick="toggleTheme()">☀️</div>
         </div>
-        <button class="save-btn" onclick="saveSettings()">保存</button>
-        <button onclick="closeSettings()" style="background:none; border:none; color:var(--text-secondary); margin-top:16px; font-size:14px;">取消</button>
-    </div>
+        <div class="count-btn" id="word-count" ondblclick="hardLogout()">Total: 0</div>
+    </header>
+
+    <div id="notes-container"></div>
+
+    <footer>
+        <div class="input-row">
+            <button class="sync-btn" onclick="syncAll()">SYNC</button>
+            <textarea id="note-input" rows="1" placeholder=""></textarea>
+        </div>
+        <div class="toolbar">
+            <div class="search-icon" onclick="toggleSearch()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <div class="tag-scroll" id="tag-bar"></div>
+            <button class="action-circle" id="action-btn" onclick="handleAction()">⇥</button>
+        </div>
+    </footer>
 </div>
 
 <script>
     let notes = [];
-    let currentFilterTag = '';
-    let colorList = ['red', 'blue', 'green', 'orange', 'purple'];
-    let colorIdx = 0;
+    let isSearchMode = false;
+    let lastEnterTime = 0;
     let config = {
         token: localStorage.getItem('gh_token') || '',
-        gistId: localStorage.getItem('gh_gist_id') || '',
-        showHidden: localStorage.getItem('show_hidden') === 'true'
+        id: localStorage.getItem('gh_gist_id') || '',
+        verified: sessionStorage.getItem('memo_auth') === 'true'
     };
-    const container = document.getElementById('notes-container');
+
     const input = document.getElementById('note-input');
-    const searchWrapper = document.getElementById('search-wrapper');
-    const searchInput = document.getElementById('search-input');
-    const tagBar = document.getElementById('tag-bar');
-    const modal = document.getElementById('settings-modal');
+    const actionBtn = document.getElementById('action-btn');
 
-    window.onload = function() {
-        document.getElementById('show-hidden-switch').checked = config.showHidden;
-        input.addEventListener('input', function() { 
-            this.style.height = 'auto'; 
-            this.style.height = Math.min(this.scrollHeight, 120) + 'px'; 
-        });
-        if (config.token && config.gistId) syncFromGist(); else openSettings();
+    // 初始化
+    window.onload = () => {
+        if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+        input.addEventListener('input', updateUI);
+        input.addEventListener('keydown', handleKey);
+        if(config.token && config.id) fetchData();
     };
 
-    function formatText(type) {
-        const start = input.selectionStart;
-        const end = input.selectionEnd;
-        const text = input.value;
-        const selected = text.substring(start, end);
-        let replacement = "";
-        if(type === 'bold') replacement = `**${selected}**`;
-        else if(type === 'italic') replacement = `*${selected}*`;
-        else if(type === 'color') {
-            replacement = `<c=${colorList[colorIdx % colorList.length]}>${selected}</c>`;
-            colorIdx++;
+    function updateUI() {
+        const val = input.value;
+        // 动态高度
+        input.style.height = '36px';
+        input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+        // 按钮切换
+        if(val.length > 0) {
+            actionBtn.classList.add('can-send');
+            actionBtn.innerText = '↑';
+        } else {
+            actionBtn.classList.remove('can-send');
+            actionBtn.innerText = '⇥';
         }
-        input.value = text.substring(0, start) + replacement + text.substring(end);
+        document.getElementById('word-count').innerText = `Total: ${JSON.stringify(notes).length}`;
+    }
+
+    function handleKey(e) {
+        if(e.key === 'Enter') {
+            const now = Date.now();
+            const delay = now - lastEnterTime;
+            lastEnterTime = now;
+            
+            if(isSearchMode) {
+                e.preventDefault();
+                doSearch();
+                return;
+            }
+
+            // 双击判定：普通态300ms，长文本态(>100字)250ms
+            const limit = input.value.length > 100 ? 250 : 350;
+            if(delay < limit) {
+                e.preventDefault();
+                // 移除刚才单击产生的换行
+                input.value = input.value.slice(0, -1);
+                addNote();
+            }
+        }
+    }
+
+    function handleAction() {
+        if(input.value.length > 0) addNote();
+        else insertTab();
+    }
+
+    function insertTab() {
+        const start = input.selectionStart;
+        input.value = input.value.substring(0, start) + "    " + input.value.substring(input.selectionEnd);
+        input.selectionStart = input.selectionEnd = start + 4;
         input.focus();
     }
 
-    function processContent(text) {
-        let res = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        // 渲染 粗体/斜体
-        res = res.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-        res = res.replace(/\*(.*?)\*/g, '<i>$1</i>');
-        // 渲染 颜色标签 (还原转义)
-        res = res.replace(/&lt;c=(.*?)&gt;(.*?)&lt;\/c&gt;/g, '<span style="color:$1">$2</span>');
-        // 渲染 图片与链接
-        res = res.replace(/(https?:\/\/[^\s]+)/g, (url) => {
-            if (url.match(/\.(jpeg|jpg|gif|png|webp|bmp)($|\?)/i)) return `<img src="${url}" onclick="window.open('${url}')">`;
-            return `<a href="${url}" target="_blank" class="hashtag">${url}</a>`;
-        });
-        // Hashtag
-        return res.replace(/(#[^\s#]+)/g, `<span class="hashtag" onclick="filterByTag('$1')">$1</span>`);
+    function addNote() {
+        let text = input.value.trim();
+        if(!text) return;
+        
+        // 自毁指令
+        if(text === '098732 Delete') {
+            notes = notes.filter(n => !n.isHidden);
+            input.value = '';
+            saveData(); return;
+        }
+
+        // 自动识别超链接标签
+        if(/https?:\/\//.test(text) && !text.includes('#超链接')) text += ' #超链接';
+
+        notes.push({ id: Date.now(), content: text, ts: new Date().toISOString(), isHidden: false });
+        input.value = '';
+        updateUI();
+        saveData();
     }
 
-    function updateTagBar() {
-        const tags = new Set();
-        notes.forEach(n => { const found = n.content.match(/#[^\s#]+/g); if (found) found.forEach(t => tags.add(t)); });
-        tagBar.innerHTML = '';
-        if (tags.size === 0) { tagBar.style.display = 'none'; return; }
-        tagBar.style.display = 'flex';
-        tags.forEach(tag => {
-            const pill = document.createElement('div');
-            pill.className = `tag-pill ${currentFilterTag === tag ? 'active' : ''}`;
-            pill.innerText = tag;
-            pill.onclick = () => filterByTag(tag);
-            tagBar.appendChild(pill);
-        });
-    }
-
-    function renderNotes() {
+    function render() {
+        const container = document.getElementById('notes-container');
         container.innerHTML = '';
-        const searchText = searchInput.value.toLowerCase();
-        let hiddenMatches = 0;
-        const filtered = notes.filter(n => {
-            const matchesTag = currentFilterTag ? n.content.includes(currentFilterTag) : true;
-            const matchesText = n.content.toLowerCase().includes(searchText);
-            const isVisible = config.showHidden || !n.isHidden;
-            if (matchesTag && matchesText && !isVisible) hiddenMatches++;
-            return matchesTag && matchesText && isVisible;
-        });
-        filtered.forEach(note => {
+        notes.forEach(n => {
+            if(n.isHidden && !config.verified) return;
             const row = document.createElement('div');
-            row.className = `note-row ${note.isHidden ? 'hidden-state' : ''}`;
-            row.innerHTML = `<div class="timestamp-row"><span class="timestamp">${new Date(note.timestamp).toLocaleString()}</span><span class="hide-btn" onclick="toggleHide(${note.id})">×</span></div><div class="journal-content">${processContent(note.content)}</div>`;
+            row.className = `note-row ${n.isHidden ? 'hidden-note' : ''}`;
+            row.id = `note-${n.id}`;
+            row.onclick = () => { input.value += `\n> ${n.content}\n`; input.focus(); updateUI(); };
+            row.innerHTML = `
+                <div class="ts"><span>${new Date(n.ts).toLocaleString()}</span><span onclick="event.stopPropagation();toggleHide(${n.id})">×</span></div>
+                <div class="content-text">${format(n.content)}</div>
+            `;
             container.appendChild(row);
         });
-        if (filtered.length === 0 && (currentFilterTag || searchText)) {
-            container.innerHTML = `<div class="empty-hint">${hiddenMatches > 0 ? '🔒 已隐藏匹配内容' : '无结果'}</div>`;
-        }
-        updateTagBar();
-        if (!currentFilterTag && !searchText) container.scrollTop = container.scrollHeight;
+        updateTags();
     }
 
-    async function syncFromGist() {
-        const btn = document.querySelector('.sync-btn-mini'); btn.innerText = '...';
-        try {
-            const res = await fetch(`https://api.github.com/gists/${config.gistId}`, { headers: { 'Authorization': `token ${config.token}` }, cache: "no-store" });
-            const data = await res.json();
-            notes = JSON.parse(data.files['notes.json'].content || '[]');
-            renderNotes(); btn.innerText = '同步';
-        } catch (e) { btn.innerText = 'ERR'; }
+    function format(t) {
+        return t.replace(/&/g,"&amp;").replace(/</g,"&lt;")
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
+                .replace(/\*(.*?)\*/g, '<i>$1</i>')
+                .replace(/(https?:\/\/[^\s]+)/g, url => url.match(/\.(jpg|png|gif|webp)$/) ? `<img src="${url}">` : `<a href="${url}" class="tag-link">${url}</a>`)
+                .replace(/(#[^\s#]+)/g, '<span class="tag-link">$1</span>');
     }
 
-    async function syncToGist() {
-        const btn = document.querySelector('.sync-btn-mini'); btn.innerText = '...';
-        try {
-            await fetch(`https://api.github.com/gists/${config.gistId}`, {
-                method: 'PATCH', headers: { 'Authorization': `token ${config.token}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ files: { 'notes.json': { content: JSON.stringify(notes) } } })
-            });
-            btn.innerText = '同步';
-        } catch (e) { btn.innerText = 'ERR'; }
-    }
-
-    function addNote() {
-        const text = input.value.trim(); if (!text) return;
-        notes.push({ id: Date.now(), content: text, timestamp: new Date().toISOString(), isHidden: false });
-        input.value = ''; input.style.height = 'auto';
-        renderNotes(); syncToGist();
-    }
-
-    function toggleHide(id) {
-        const n = notes.find(n => n.id === id);
-        if (n) { n.isHidden = !n.isHidden; renderNotes(); syncToGist(); }
+    function updateTags() {
+        const tags = new Set();
+        notes.forEach(n => (n.content.match(/#[^\s#]+/g)||[]).forEach(t => tags.add(t)));
+        const bar = document.getElementById('tag-bar');
+        bar.innerHTML = '';
+        tags.forEach(t => {
+            const p = document.createElement('div');
+            p.className = 'tag-pill'; p.innerText = t;
+            let timer;
+            p.ontouchstart = () => timer = setTimeout(() => deleteTag(t), 800);
+            p.ontouchend = () => clearTimeout(timer);
+            bar.appendChild(p);
+        });
     }
 
     function toggleSearch() {
-        const isVisible = searchWrapper.style.display === 'block';
-        searchWrapper.style.display = isVisible ? 'none' : 'block';
-        if (!isVisible) searchInput.focus();
+        isSearchMode = !isSearchMode;
+        input.placeholder = isSearchMode ? "搜索内容并按回车..." : "";
+        input.style.background = isSearchMode ? "#fff9c4" : "";
+        if(!isSearchMode) render();
     }
 
-    function filterByTag(tag) { currentFilterTag = (currentFilterTag === tag) ? '' : tag; renderNotes(); }
-    function handleSearch() { renderNotes(); }
-    function clearFilter() { currentFilterTag = ''; searchInput.value = ''; renderNotes(); }
-    function openSettings() { modal.style.display = 'flex'; setTimeout(() => modal.classList.add('active'), 10); }
-    function closeSettings() { modal.classList.remove('active'); setTimeout(() => modal.style.display = 'none', 200); }
-    function toggleShowHidden() { config.showHidden = document.getElementById('show-hidden-switch').checked; localStorage.setItem('show_hidden', config.showHidden); renderNotes(); }
-    function saveSettings() {
-        config.token = document.getElementById('github-token').value.trim();
-        config.gistId = document.getElementById('gist-id').value.trim();
-        localStorage.setItem('gh_token', config.token); localStorage.setItem('gh_gist_id', config.gistId);
-        closeSettings(); syncFromGist();
+    function doSearch() {
+        const q = input.value.toLowerCase();
+        const target = notes.find(n => n.content.toLowerCase().includes(q));
+        if(target) {
+            const el = document.getElementById(`note-${target.id}`);
+            el.scrollIntoView({behavior:'smooth'});
+            el.classList.add('highlight');
+            setTimeout(() => el.classList.remove('highlight'), 2000);
+        }
     }
-    input.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); addNote(); }});
+
+    function unlockHidden() {
+        if(config.verified) { 
+            config.verified = false; 
+            sessionStorage.removeItem('memo_auth');
+            render(); return; 
+        }
+        const pw = prompt("ENTER TOKEN TO UNLOCK:");
+        if(pw === config.token) {
+            config.verified = true;
+            sessionStorage.setItem('memo_auth', 'true');
+            render();
+        }
+    }
+
+    function deleteTag(t) {
+        if(confirm(`删除所有笔记中的标签 ${t}？`)) {
+            notes.forEach(n => n.content = n.content.replace(t, '').trim());
+            saveData();
+        }
+    }
+
+    function toggleHide(id) {
+        const n = notes.find(x => x.id === id);
+        if(n) { n.isHidden = !n.isHidden; saveData(); }
+    }
+
+    function toggleTheme() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+
+    function hardLogout() {
+        if(confirm("确定清空缓存并退出？")) {
+            localStorage.clear(); sessionStorage.clear(); window.location.reload();
+        }
+    }
+
+    async function fetchData() {
+        try {
+            const r = await fetch(`https://api.github.com/gists/${config.id}`, {headers:{Authorization:`token ${config.token}`}});
+            const d = await r.json();
+            notes = JSON.parse(d.files['notes.json'].content || '[]');
+            render();
+        } catch(e) { alert("同步失败，请检查配置"); }
+    }
+
+    async function saveData() {
+        render();
+        try {
+            await fetch(`https://api.github.com/gists/${config.id}`, {
+                method:'PATCH', headers:{Authorization:`token ${config.token}`},
+                body: JSON.stringify({files:{'notes.json':{content:JSON.stringify(notes)}}})
+            });
+        } catch(e) { console.error(e); }
+    }
+
+    function syncAll() { 
+        if(!config.token) {
+            const t = prompt("GitHub Token:");
+            const g = prompt("Gist ID:");
+            if(t && g) {
+                localStorage.setItem('gh_token', t);
+                localStorage.setItem('gh_gist_id', g);
+                window.location.reload();
+            }
+        } else fetchData();
+    }
 </script>
 </body>
 </html>
