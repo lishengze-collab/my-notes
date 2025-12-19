@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#f2f2f7">
-    <title>ME PN-3.3.8</title>
+    <title>ME PN-3.3.10</title>
     <style>
         :root {
             --bg-main: #f2f2f7; 
@@ -17,7 +17,7 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
         
-        /* 全域背景强制统一，防止出现白边 */
+        /* 全域背景强制统一 */
         html, body { 
             background-color: var(--bg-main); 
             margin: 0; 
@@ -47,18 +47,44 @@
 
         header { padding: calc(var(--safe-top) + 45px) 20px 10px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
         .header-left { display: flex; align-items: baseline; gap: 8px; }
-        .title { font-size: 18px; font-weight: 900; color: var(--text-sec); cursor: pointer; line-height: 1; user-select: none; }
-        /* 移除 theme-btn 相关样式 */
+        
+        /* ME 加粗 */
+        .title { font-size: 18px; font-weight: 900; color: var(--text-sec); cursor: pointer; line-height: 1; user-select: none; transition: color 0.3s; }
+        .title.active { color: var(--ios-blue); } 
+
         .count-num { font-size: 16px; color: var(--text-main); font-weight: 800; }
 
         #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px 200px; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-        .note-row { border-left: 2px solid var(--line); padding-left: 15px; margin-bottom: 25px; animation: fadeIn 0.3s ease-in; }
+        
+        /* 移除原有的 border-left */
+        .note-row { margin-bottom: 25px; animation: fadeIn 0.3s ease-in; position: relative; }
+        
+        /* 隐藏消息的高亮样式 */
+        .note-row.is-hidden { background-color: rgba(255, 204, 0, 0.15); padding: 10px 15px; border-radius: 8px; }
+
+        /* 信息行：包含时间戳和删除按钮 */
+        .info-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+
+        /* 时间戳样式 */
+        .ts { font-size: 12px; color: var(--text-sec); font-weight: 500; }
+
+        /* 删除按钮样式：移动到时间戳后面 */
+        .delete-btn {
+            color: #c7c7cc;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 4px; /* 增加一点点击区域 */
+            line-height: 1;
+        }
+        .is-hidden .delete-btn { color: #ffcc00; } 
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
-        .ts { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; font-weight: 500; }
         .content-text { font-size: 18px; line-height: 1.6; color: var(--text-main); word-break: break-all; white-space: pre-wrap; }
         
-        .quote-line { color: #8e8e93; font-size: 15px; display: block; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; margin-left: -10px; }
+        /* 引用内容依然保留竖线，便于区分 */
+        .quote-line { color: #8e8e93; font-size: 15px; display: block; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; margin-left: 0px; }
         .quote-mark { color: var(--accent); font-weight: bold; margin-right: 4px; }
 
         footer { position: absolute; bottom: 0; width: 100%; background: var(--bg-main); border-top: 0.5px solid var(--line); padding-bottom: var(--safe-bottom); z-index: 100; }
@@ -84,9 +110,9 @@
 <div class="app-container">
     <header>
         <div class="header-left">
-            <div class="title" id="me-title" onclick="handleMeClick()">ME</div>
+            <div class="title" id="me-title" onclick="toggleHiddenMode()">ME</div>
         </div>
-        <div class="count-num" id="word-count" ondblclick="hardLogout()">0</div>
+        <div class="count-num" id="char-count" ondblclick="hardLogout()">0</div>
     </header>
 
     <div id="notes-container"></div>
@@ -124,14 +150,15 @@
 <script>
     let notes = [];
     let activeTag = null;
+    let showHiddenNotes = false;
     let config = {
         token: localStorage.getItem('gh_token') || '',
-        id: localStorage.getItem('gh_gist_id') || '',
-        verified: sessionStorage.getItem('memo_auth') === 'true'
+        id: localStorage.getItem('gh_gist_id') || ''
     };
 
     const input = document.getElementById('note-input');
     const container = document.getElementById('notes-container');
+    const titleBtn = document.getElementById('me-title');
 
     window.onload = () => {
         input.addEventListener('input', () => {
@@ -141,19 +168,23 @@
         if(config.token && config.id) fetchData();
     };
 
-    function handleMeClick() {
-        if (config.verified) {
-            config.verified = false;
-            sessionStorage.removeItem('memo_auth');
-            render();
+    function toggleHiddenMode() {
+        showHiddenNotes = !showHiddenNotes;
+        if(showHiddenNotes) {
+            titleBtn.classList.add('active');
         } else {
-            showIOSAlert((val) => {
-                if (val === config.token) {
-                    config.verified = true;
-                    sessionStorage.setItem('memo_auth', 'true');
-                    render();
-                }
-            });
+            titleBtn.classList.remove('active');
+        }
+        render();
+    }
+
+    function toggleNoteVisibility(id, e) {
+        if(e) e.stopPropagation(); // 防止触发引用
+        const note = notes.find(n => n.id === id);
+        if(note) {
+            note.isHidden = !note.isHidden;
+            render();
+            saveData();
         }
     }
 
@@ -178,7 +209,7 @@
             isHidden: false
         };
 
-        notes.push(newNote); // PN-3.3.7 逻辑：新消息在数组末尾
+        notes.push(newNote);
         
         input.value = '';
         input.style.height = '38px';
@@ -186,9 +217,9 @@
         requestAnimationFrame(() => {
             if(activeTag) { activeTag = null; render(); }
             const row = createNoteNode(newNote);
-            if(row) container.appendChild(row); // PN-3.3.7 逻辑：新消息在 DOM 底部
+            if(row) container.appendChild(row); 
             container.scrollTop = container.scrollHeight;
-            document.getElementById('word-count').innerText = notes.length;
+            updateCount();
             updateTags();
         });
 
@@ -196,15 +227,22 @@
     }
 
     function createNoteNode(n) {
-        if (n.isHidden && !config.verified) return null;
+        if (n.isHidden && !showHiddenNotes) return null;
+
         const row = document.createElement('div');
-        row.className = 'note-row';
+        row.className = `note-row ${n.isHidden ? 'is-hidden' : ''}`;
         row.id = `note-${n.id}`;
         row.onclick = () => { input.value += `\n> ${n.content}\n`; input.focus(); };
         
         const date = new Date(n.ts);
+        const btnSymbol = n.isHidden ? '＋' : '×';
+        
+        // 结构更新：Delete 按钮放入 info-row，紧跟时间戳
         row.innerHTML = `
-            <div class="ts">${isNaN(date) ? "刚才" : date.toLocaleString('zh-CN')}</div>
+            <div class="info-row">
+                <span class="ts">${isNaN(date) ? "刚才" : date.toLocaleString('zh-CN')}</span>
+                <span class="delete-btn" onclick="toggleNoteVisibility(${n.id}, event)">${btnSymbol}</span>
+            </div>
             <div class="content-text">${format(n.content)}</div>
         `;
         return row;
@@ -222,8 +260,20 @@
         });
         container.appendChild(fragment);
         updateTags();
-        document.getElementById('word-count').innerText = notes.length;
+        updateCount();
         container.scrollTop = container.scrollHeight;
+    }
+
+    function updateCount() {
+        let currentNotes = notes;
+        if (!showHiddenNotes) {
+            currentNotes = notes.filter(n => !n.isHidden);
+        }
+        if (activeTag) {
+            currentNotes = currentNotes.filter(n => n.content.includes(activeTag));
+        }
+        const totalChars = currentNotes.reduce((acc, curr) => acc + curr.content.length, 0);
+        document.getElementById('char-count').innerText = totalChars;
     }
 
     function format(t) {
@@ -256,10 +306,19 @@
         if (q) {
             const found = notes.find(n => n.content.toLowerCase().includes(q.toLowerCase()));
             if (found) {
-                activeTag = null; render();
+                if(found.isHidden && !showHiddenNotes) {
+                    showHiddenNotes = true;
+                    titleBtn.classList.add('active');
+                }
+                activeTag = null; 
+                render();
                 setTimeout(() => {
                     const el = document.getElementById(`note-${found.id}`);
-                    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+                    if(el) {
+                        el.scrollIntoView({behavior:'smooth', block:'center'});
+                        el.style.backgroundColor = 'rgba(52, 199, 89, 0.2)';
+                        setTimeout(() => el.style.backgroundColor = '', 2000);
+                    }
                 }, 100);
             }
         }
