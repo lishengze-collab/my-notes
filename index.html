@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="theme-color" content="#f2f2f7">
-    <title>ME PN-3.3.10</title>
+    <title>ME PN-5</title>
     <style>
         :root {
             --bg-main: #f2f2f7; 
@@ -17,101 +17,81 @@
             --safe-bottom: env(safe-area-inset-bottom);
         }
         
-        /* 全域背景强制统一 */
-        html, body { 
-            background-color: var(--bg-main); 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            width: 100%;
-        }
-
-        * { -ms-overflow-style: none; scrollbar-width: none; }
+        html, body { background-color: var(--bg-main); margin: 0; padding: 0; height: 100%; width: 100%; }
+        * { -ms-overflow-style: none; scrollbar-width: none; -webkit-tap-highlight-color: transparent; }
         *::-webkit-scrollbar { display: none; }
-
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; overflow: hidden; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; overflow: hidden; }
         
-        .app-container { 
-            display: flex; 
-            flex-direction: column; 
-            position: relative; 
-            height: 100vh; 
-            width: 100%; 
-            background: var(--bg-main); 
-        }
-
+        .app-container { display: flex; flex-direction: column; position: relative; height: 100vh; width: 100%; background: var(--bg-main); }
         @media (min-width: 500px) {
             body { background: #333 !important; display: flex; justify-content: center; align-items: center; }
             .app-container { width: 393px; height: 852px; border: 10px solid #1a1a1a; border-radius: 55px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         }
 
         header { padding: calc(var(--safe-top) + 45px) 20px 10px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-        .header-left { display: flex; align-items: baseline; gap: 8px; }
-        
-        /* ME 加粗 */
-        .title { font-size: 18px; font-weight: 900; color: var(--text-sec); cursor: pointer; line-height: 1; user-select: none; transition: color 0.3s; }
-        .title.active { color: var(--ios-blue); } 
-
-        .count-num { font-size: 16px; color: var(--text-main); font-weight: 800; }
+        .title { font-size: 18px; font-weight: 900; color: var(--text-sec); line-height: 1; user-select: none; }
+        .count-num { font-size: 16px; color: var(--text-main); font-weight: 800; cursor: pointer; }
 
         #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px 200px; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
-        
-        /* 移除原有的 border-left */
         .note-row { margin-bottom: 25px; animation: fadeIn 0.3s ease-in; position: relative; }
-        
-        /* 隐藏消息的高亮样式 */
-        .note-row.is-hidden { background-color: rgba(255, 204, 0, 0.15); padding: 10px 15px; border-radius: 8px; }
-
-        /* 信息行：包含时间戳和删除按钮 */
         .info-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-
-        /* 时间戳样式 */
         .ts { font-size: 12px; color: var(--text-sec); font-weight: 500; }
-
-        /* 删除按钮样式：移动到时间戳后面 */
-        .delete-btn {
-            color: #c7c7cc;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: bold;
-            padding: 0 4px; /* 增加一点点击区域 */
-            line-height: 1;
-        }
-        .is-hidden .delete-btn { color: #ffcc00; } 
-
+        .delete-btn { color: #c7c7cc; font-size: 14px; cursor: pointer; font-weight: bold; padding: 0 4px; line-height: 1; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
         .content-text { font-size: 18px; line-height: 1.6; color: var(--text-main); word-break: break-all; white-space: pre-wrap; }
-        
-        /* 引用内容依然保留竖线，便于区分 */
-        .quote-line { color: #8e8e93; font-size: 15px; display: block; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; margin-left: 0px; }
+        .quote-line { color: #8e8e93; font-size: 15px; display: block; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; }
         .quote-mark { color: var(--accent); font-weight: bold; margin-right: 4px; }
 
         footer { position: absolute; bottom: 0; width: 100%; background: var(--bg-main); border-top: 0.5px solid var(--line); padding-bottom: var(--safe-bottom); z-index: 100; }
         .input-row { padding: 12px 16px 8px; display: flex; align-items: center; gap: 8px; }
         .sync-btn { background: var(--accent); color: white; border: none; height: 38px; padding: 0 14px; border-radius: 10px; font-size: 13px; font-weight: 800; cursor: pointer; }
-        #note-input { flex: 1; background: #e3e3e6; border: none; border-radius: 10px; min-height: 38px; max-height: 150px; padding: 10px 12px; font-size: 16px; outline: none; box-sizing: border-box; resize: none; color: var(--text-main); }
+        
+        #note-input { 
+            flex: 1; background: #e3e3e6; border: 2px solid transparent; border-radius: 10px; 
+            min-height: 38px; max-height: 150px; padding: 8px 12px; font-size: 16px; outline: none; 
+            box-sizing: border-box; resize: none; color: var(--text-main); transition: border-color 0.3s;
+        }
+        #note-input.search-mode { border-color: var(--ios-blue); background: #fff; }
 
         .toolbar { padding: 4px 16px 12px; display: flex; align-items: center; gap: 12px; }
-        .icon-btn { color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: none; border: none; padding: 0; }
+        .icon-btn { color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: none; border: none; padding: 0; transition: color 0.3s; }
+        .icon-btn.active { color: var(--ios-blue); }
         
         .tag-scroll { flex: 1; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; }
-        .tag-pill { background: #e3e3e6; padding: 6px 14px; border-radius: 14px; font-size: 13px; color: #666; font-weight: 500; cursor: pointer; }
+        .tag-pill { background: #e3e3e6; padding: 6px 14px; border-radius: 14px; font-size: 13px; color: #666; font-weight: 500; cursor: pointer; user-select: none; }
         .tag-pill.active { background: var(--accent); color: white; }
 
-        .ios-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
-        .ios-alert { background: white; width: 270px; border-radius: 14px; overflow: hidden; text-align: center; }
-        .alert-body { padding: 20px 15px; border-bottom: 0.5px solid var(--line); }
-        .alert-btn { flex: 1; padding: 12px; color: var(--ios-blue); font-weight: 600; cursor: pointer; border: none; background: none; font-size: 16px; }
+        .ios-overlay { 
+            position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 3000; 
+            display: none; justify-content: center; align-items: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
+        .ios-alert { 
+            background: rgba(255, 255, 255, 0.9); width: 270px; border-radius: 14px; 
+            overflow: hidden; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: zoomIn 0.2s ease-out;
+        }
+        @keyframes zoomIn { from { transform: scale(1.1); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .alert-body { padding: 20px 16px; }
+        .alert-title { font-weight: 600; font-size: 17px; margin-bottom: 4px; color: #000; }
+        .alert-msg { font-size: 13px; color: #000; margin-bottom: 12px; line-height: 1.4; }
+        .alert-input { 
+            width: 100%; border: 0.5px solid #ccc; padding: 6px 8px; border-radius: 6px; 
+            box-sizing: border-box; font-size: 14px; outline: none; background: #fff;
+        }
+        .alert-footer { display: flex; border-top: 0.5px solid var(--line); }
+        .alert-btn { 
+            flex: 1; padding: 12px; color: var(--ios-blue); font-size: 17px; cursor: pointer; 
+            border: none; background: none; outline: none;
+        }
+        .alert-btn:active { background: rgba(0,0,0,0.05); }
+        .alert-btn.bold { font-weight: 600; border-left: 0.5px solid var(--line); }
     </style>
 </head>
 <body>
 
 <div class="app-container">
     <header>
-        <div class="header-left">
-            <div class="title" id="me-title" onclick="toggleHiddenMode()">ME</div>
-        </div>
+        <div class="header-left"><div class="title">ME</div></div>
         <div class="count-num" id="char-count" ondblclick="hardLogout()">0</div>
     </header>
 
@@ -123,7 +103,7 @@
             <textarea id="note-input" rows="1" placeholder=""></textarea>
         </div>
         <div class="toolbar">
-            <button class="icon-btn" type="button" onclick="toggleSearch()">
+            <button class="icon-btn" id="search-toggle" type="button" onclick="toggleSearchMode()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </button>
             <div class="tag-scroll" id="tag-bar"></div>
@@ -136,21 +116,15 @@
 
 <div class="ios-overlay" id="ios-overlay">
     <div class="ios-alert">
-        <div class="alert-body">
-            <div style="font-weight:600;font-size:17px;margin-bottom:5px;">Z</div>
-            <input type="password" class="alert-input" id="alert-input" style="width:100%; border:0.5px solid var(--line); padding:8px; border-radius:5px; margin-top:10px; box-sizing:border-box;" placeholder="Token">
-        </div>
-        <div style="display:flex;">
-            <button class="alert-btn" style="border-right:0.5px solid var(--line); font-weight:400;" onclick="closeAlert()">取消</button>
-            <button class="alert-btn" id="alert-confirm">确定</button>
-        </div>
+        <div class="alert-body" id="alert-body-content"></div>
+        <div class="alert-footer" id="alert-footer-btns"></div>
     </div>
 </div>
 
 <script>
     let notes = [];
     let activeTag = null;
-    let showHiddenNotes = false;
+    let isSearchMode = false;
     let config = {
         token: localStorage.getItem('gh_token') || '',
         id: localStorage.getItem('gh_gist_id') || ''
@@ -158,105 +132,79 @@
 
     const input = document.getElementById('note-input');
     const container = document.getElementById('notes-container');
-    const titleBtn = document.getElementById('me-title');
 
     window.onload = () => {
         input.addEventListener('input', () => {
             input.style.height = '38px';
             input.style.height = Math.min(input.scrollHeight, 150) + 'px';
+            if(isSearchMode) render(); 
         });
         if(config.token && config.id) fetchData();
     };
 
-    function toggleHiddenMode() {
-        showHiddenNotes = !showHiddenNotes;
-        if(showHiddenNotes) {
-            titleBtn.classList.add('active');
+    function toggleSearchMode() {
+        isSearchMode = !isSearchMode;
+        const btn = document.getElementById('search-toggle');
+        if(isSearchMode) {
+            btn.classList.add('active');
+            input.classList.add('search-mode');
+            input.placeholder = "搜索消息...";
+            input.focus();
         } else {
-            titleBtn.classList.remove('active');
+            btn.classList.remove('active');
+            input.classList.remove('search-mode');
+            input.placeholder = "";
+            input.value = "";
+            render();
         }
-        render();
     }
 
-    function toggleNoteVisibility(id, e) {
-        if(e) e.stopPropagation(); // 防止触发引用
-        const note = notes.find(n => n.id === id);
-        if(note) {
-            note.isHidden = !note.isHidden;
+    function deleteNotePermanently(id, e) {
+        if(e) e.stopPropagation();
+        customConfirm("确定要删除这条消息吗？", "删除后将无法找回。", () => {
+            notes = notes.filter(n => n.id !== id);
             render();
             saveData();
-        }
+        });
     }
 
     function addNote(e) {
         if(e) { e.preventDefault(); e.stopPropagation(); }
-        
+        if(isSearchMode) return;
         const rawText = input.value.trim();
         if (!rawText) return;
-
-        if (rawText === '098732 Delete') {
-            notes = notes.filter(n => !n.isHidden);
-            input.value = ''; render(); saveData(); return;
-        }
-
         let content = rawText;
         if (/https?:\/\//.test(content) && !content.includes('#超链接')) content += ' #超链接';
-
-        const newNote = {
-            id: Date.now(),
-            content: content,
-            ts: new Date().toISOString(),
-            isHidden: false
-        };
-
+        const newNote = { id: Date.now(), content: content, ts: new Date().toISOString() };
         notes.push(newNote);
-        
         input.value = '';
         input.style.height = '38px';
-
-        requestAnimationFrame(() => {
-            if(activeTag) { activeTag = null; render(); }
-            const row = createNoteNode(newNote);
-            if(row) container.appendChild(row); 
-            container.scrollTop = container.scrollHeight;
-            updateCount();
-            updateTags();
-        });
-
+        render();
         saveData();
-    }
-
-    function createNoteNode(n) {
-        if (n.isHidden && !showHiddenNotes) return null;
-
-        const row = document.createElement('div');
-        row.className = `note-row ${n.isHidden ? 'is-hidden' : ''}`;
-        row.id = `note-${n.id}`;
-        row.onclick = () => { input.value += `\n> ${n.content}\n`; input.focus(); };
-        
-        const date = new Date(n.ts);
-        const btnSymbol = n.isHidden ? '＋' : '×';
-        
-        // 结构更新：Delete 按钮放入 info-row，紧跟时间戳
-        row.innerHTML = `
-            <div class="info-row">
-                <span class="ts">${isNaN(date) ? "刚才" : date.toLocaleString('zh-CN')}</span>
-                <span class="delete-btn" onclick="toggleNoteVisibility(${n.id}, event)">${btnSymbol}</span>
-            </div>
-            <div class="content-text">${format(n.content)}</div>
-        `;
-        return row;
     }
 
     function render() {
         container.innerHTML = '';
         let filtered = [...notes];
         if (activeTag) filtered = filtered.filter(n => n.content.includes(activeTag));
-
+        const keyword = input.value.trim().toLowerCase();
+        if (isSearchMode && keyword) {
+            filtered = filtered.filter(n => n.content.toLowerCase().includes(keyword));
+        }
         const fragment = document.createDocumentFragment();
         filtered.forEach(n => {
-            const node = createNoteNode(n);
-            if(node) fragment.appendChild(node);
+            const row = document.createElement('div');
+            row.className = 'note-row';
+            row.onclick = () => { input.value += `\n> ${n.content}\n`; input.focus(); };
+            const date = new Date(n.ts);
+            row.innerHTML = `
+                <div class="info-row">
+                    <span class="ts">${isNaN(date) ? "刚才" : date.toLocaleString('zh-CN')}</span>
+                    <span class="delete-btn" onclick="deleteNotePermanently(${n.id}, event)">×</span>
+                </div>
+                <div class="content-text">${format(n.content)}</div>
+            `;
+            fragment.appendChild(row);
         });
         container.appendChild(fragment);
         updateTags();
@@ -265,15 +213,8 @@
     }
 
     function updateCount() {
-        let currentNotes = notes;
-        if (!showHiddenNotes) {
-            currentNotes = notes.filter(n => !n.isHidden);
-        }
-        if (activeTag) {
-            currentNotes = currentNotes.filter(n => n.content.includes(activeTag));
-        }
-        const totalChars = currentNotes.reduce((acc, curr) => acc + curr.content.length, 0);
-        document.getElementById('char-count').innerText = totalChars;
+        const count = Array.from(container.querySelectorAll('.content-text')).reduce((acc, el) => acc + el.innerText.length, 0);
+        document.getElementById('char-count').innerText = count;
     }
 
     function format(t) {
@@ -296,46 +237,62 @@
             const p = document.createElement('div');
             p.className = `tag-pill ${activeTag === t ? 'active' : ''}`; 
             p.innerText = t;
-            p.onclick = (e) => { e.stopPropagation(); activeTag = (activeTag === t) ? null : t; render(); };
+            p.onclick = (e) => { 
+                e.stopPropagation(); 
+                activeTag = (activeTag === t) ? null : t; 
+                if(activeTag && !input.value.includes(activeTag)) {
+                    input.value += (input.value ? " " : "") + activeTag + " ";
+                }
+                render(); 
+            };
+            p.ondblclick = (e) => {
+                e.stopPropagation();
+                customConfirm("注销标签", `确定要从所有消息中移除 ${t} 吗？消息内容将保留。`, () => {
+                    const tagRegex = new RegExp(t + '(\\s|$)', 'g');
+                    notes = notes.map(n => ({...n, content: n.content.replace(tagRegex, '').trim()}));
+                    activeTag = null;
+                    render();
+                    saveData();
+                });
+            };
             bar.appendChild(p);
         });
     }
 
-    function toggleSearch() {
-        const q = prompt("搜索内容:");
-        if (q) {
-            const found = notes.find(n => n.content.toLowerCase().includes(q.toLowerCase()));
-            if (found) {
-                if(found.isHidden && !showHiddenNotes) {
-                    showHiddenNotes = true;
-                    titleBtn.classList.add('active');
-                }
-                activeTag = null; 
-                render();
-                setTimeout(() => {
-                    const el = document.getElementById(`note-${found.id}`);
-                    if(el) {
-                        el.scrollIntoView({behavior:'smooth', block:'center'});
-                        el.style.backgroundColor = 'rgba(52, 199, 89, 0.2)';
-                        setTimeout(() => el.style.backgroundColor = '', 2000);
-                    }
-                }, 100);
-            }
-        }
+    function customConfirm(title, msg, onConfirm) {
+        const overlay = document.getElementById('ios-overlay');
+        const body = document.getElementById('alert-body-content');
+        const footer = document.getElementById('alert-footer-btns');
+        body.innerHTML = `<div class="alert-title">${title}</div><div class="alert-msg">${msg}</div>`;
+        footer.innerHTML = `
+            <button class="alert-btn" onclick="closeAlert()">取消</button>
+            <button class="alert-btn bold" id="confirm-btn">确定</button>
+        `;
+        overlay.style.display = 'flex';
+        document.getElementById('confirm-btn').onclick = () => { onConfirm(); closeAlert(); };
     }
 
-    function showIOSAlert(onConfirm) {
+    function customPrompt(title, onConfirm) {
         const overlay = document.getElementById('ios-overlay');
-        const inputField = document.getElementById('alert-input');
-        inputField.value = '';
+        const body = document.getElementById('alert-body-content');
+        const footer = document.getElementById('alert-footer-btns');
+        body.innerHTML = `<div class="alert-title">${title}</div><input type="text" class="alert-input" id="prompt-input" autofocus>`;
+        footer.innerHTML = `
+            <button class="alert-btn" onclick="closeAlert()">取消</button>
+            <button class="alert-btn bold" id="confirm-btn">确定</button>
+        `;
         overlay.style.display = 'flex';
-        document.getElementById('alert-confirm').onclick = () => { onConfirm(inputField.value); closeAlert(); };
+        const pInput = document.getElementById('prompt-input');
+        pInput.focus();
+        document.getElementById('confirm-btn').onclick = () => { onConfirm(pInput.value); closeAlert(); };
     }
 
     function closeAlert() { document.getElementById('ios-overlay').style.display = 'none'; }
 
     function hardLogout() {
-        if(confirm("清空并退出？")) { localStorage.clear(); sessionStorage.clear(); window.location.reload(); }
+        customConfirm("退出登录", "清空本地配置并退出吗？", () => {
+            localStorage.clear(); sessionStorage.clear(); window.location.reload();
+        });
     }
 
     async function fetchData() {
@@ -348,6 +305,7 @@
     }
 
     async function saveData() {
+        if(!config.token || !config.id) return;
         try {
             await fetch(`https://api.github.com/gists/${config.id}`, {
                 method:'PATCH', headers:{Authorization:`token ${config.token}`},
@@ -358,9 +316,15 @@
 
     function syncAll() { 
         if(!config.token) {
-            const id = prompt("Gist ID");
-            const tk = prompt("Token");
-            if(id && tk) { localStorage.setItem('gh_gist_id', id); localStorage.setItem('gh_token', tk); window.location.reload(); }
+            customPrompt("请输入 Gist ID", (id) => {
+                if(!id) return;
+                customPrompt("请输入 Token", (tk) => {
+                    if(!tk) return;
+                    localStorage.setItem('gh_gist_id', id);
+                    localStorage.setItem('gh_token', tk);
+                    window.location.reload();
+                });
+            });
         } else fetchData();
     }
 </script>
