@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>ME PN-3.3.3</title>
+    <title>ME PN-3.3.7</title>
     <style>
         :root {
             --bg-main: #f2f2f7; --text-main: #1c1c1e; --text-sec: #8e8e93;
@@ -15,35 +15,31 @@
             --line: #38383a;
         }
         
-        /* 隐藏所有滚动条 */
         * { -ms-overflow-style: none; scrollbar-width: none; }
         *::-webkit-scrollbar { display: none; }
 
-        @media (min-width: 500px) {
-            body { background: #333 !important; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-            .app-container { width: 393px; height: 852px; border: 10px solid #1a1a1a; border-radius: 55px; position: relative; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); background: var(--bg-main); }
-            .island { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); width: 110px; height: 35px; background: black; border-radius: 20px; z-index: 2000; }
-        }
-        @media (max-width: 500px) {
-            body, .app-container { width: 100%; height: 100vh; margin: 0; background: var(--bg-main); }
-            .island { display: none; }
-        }
+        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; transition: background 0.3s; overflow: hidden; margin: 0; }
+        .app-container { display: flex; flex-direction: column; position: relative; height: 100vh; width: 100%; background: var(--bg-main); }
 
-        body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; transition: background 0.3s; overflow: hidden; }
-        .app-container { display: flex; flex-direction: column; position: relative; }
+        @media (min-width: 500px) {
+            body { background: #333 !important; display: flex; justify-content: center; align-items: center; }
+            .app-container { width: 393px; height: 852px; border: 10px solid #1a1a1a; border-radius: 55px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        }
 
         header { padding: calc(var(--safe-top) + 45px) 20px 10px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
         .header-left { display: flex; align-items: baseline; gap: 8px; }
-        .title { font-size: 18px; font-weight: 900; color: var(--text-sec); cursor: pointer; line-height: 1; }
+        .title { font-size: 18px; font-weight: 900; color: var(--text-sec); cursor: pointer; line-height: 1; user-select: none; }
         .theme-btn { font-size: 18px; cursor: pointer; line-height: 1; }
-        .count-num { font-size: 16px; color: var(--text-main); font-weight: 800; cursor: pointer; }
+        .count-num { font-size: 16px; color: var(--text-main); font-weight: 800; }
 
-        #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px 180px; -webkit-overflow-scrolling: touch; }
-        .note-row { border-left: 2px solid var(--line); padding-left: 15px; margin-bottom: 25px; transition: all 0.3s; }
+        #notes-container { flex: 1; overflow-y: auto; padding: 10px 20px 200px; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+        .note-row { border-left: 2px solid var(--line); padding-left: 15px; margin-bottom: 25px; animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
         .ts { font-size: 12px; color: var(--text-sec); margin-bottom: 6px; font-weight: 500; }
         .content-text { font-size: 18px; line-height: 1.6; color: var(--text-main); word-break: break-all; white-space: pre-wrap; }
         
-        .quote-line { color: #8e8e93; font-size: 15px; display: block; margin-bottom: 4px; }
+        .quote-line { color: #8e8e93; font-size: 15px; display: block; margin-bottom: 4px; border-left: 2px solid var(--accent); padding-left: 8px; margin-left: -10px; }
         .quote-mark { color: var(--accent); font-weight: bold; margin-right: 4px; }
 
         footer { position: absolute; bottom: 0; width: 100%; background: var(--bg-main); border-top: 0.5px solid var(--line); padding-bottom: var(--safe-bottom); z-index: 100; }
@@ -55,30 +51,24 @@
         .toolbar { padding: 4px 16px 12px; display: flex; align-items: center; gap: 12px; }
         .icon-btn { color: var(--accent); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: none; border: none; padding: 0; }
         
-        .tag-scroll { flex: 1; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch; }
-        .tag-pill { background: #e3e3e6; padding: 6px 14px; border-radius: 14px; font-size: 13px; color: #666; font-weight: 500; transition: 0.2s; }
+        .tag-scroll { flex: 1; display: flex; gap: 8px; overflow-x: auto; white-space: nowrap; }
+        .tag-pill { background: #e3e3e6; padding: 6px 14px; border-radius: 14px; font-size: 13px; color: #666; font-weight: 500; cursor: pointer; }
         .tag-pill.active { background: var(--accent); color: white; }
         .dark-mode .tag-pill { background: #1c1c1e; color: #aaa; }
-        .dark-mode .tag-pill.active { background: var(--accent); color: white; }
 
         .ios-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .ios-alert { background: white; width: 270px; border-radius: 14px; overflow: hidden; text-align: center; }
         .dark-mode .ios-alert { background: #1c1c1e; color: white; }
         .alert-body { padding: 20px 15px; border-bottom: 0.5px solid var(--line); }
-        .alert-title { font-weight: 600; font-size: 17px; margin-bottom: 5px; }
-        .alert-input { width: 100%; border: 0.5px solid var(--line); padding: 8px; border-radius: 5px; margin-top: 10px; outline: none; box-sizing: border-box; }
-        .alert-btns { display: flex; }
         .alert-btn { flex: 1; padding: 12px; color: var(--ios-blue); font-weight: 600; cursor: pointer; border: none; background: none; font-size: 16px; }
-        .alert-btn:first-child { border-right: 0.5px solid var(--line); font-weight: 400; }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="island"></div>
     <header>
         <div class="header-left">
-            <div class="title" onclick="handleMemoClick()">ME</div>
+            <div class="title" id="me-title" onclick="handleMeClick()">ME</div>
             <div class="theme-btn" onclick="toggleTheme()">☀️</div>
         </div>
         <div class="count-num" id="word-count" ondblclick="hardLogout()">0</div>
@@ -88,16 +78,16 @@
 
     <footer>
         <div class="input-row">
-            <button class="sync-btn" onclick="syncAll()">SYNC</button>
+            <button class="sync-btn" type="button" onclick="syncAll()">SYNC</button>
             <textarea id="note-input" rows="1" placeholder=""></textarea>
         </div>
         <div class="toolbar">
-            <button class="icon-btn" onclick="toggleSearch()">
+            <button class="icon-btn" type="button" onclick="toggleSearch()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </button>
             <div class="tag-scroll" id="tag-bar"></div>
-            <button class="icon-btn" onclick="addNote()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            <button class="icon-btn" type="button" onmousedown="addNote(event)" ontouchstart="addNote(event)">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
             </button>
         </div>
     </footer>
@@ -106,11 +96,11 @@
 <div class="ios-overlay" id="ios-overlay">
     <div class="ios-alert">
         <div class="alert-body">
-            <div class="alert-title" id="alert-title">Z</div>
-            <input type="password" class="alert-input" id="alert-input" placeholder="Token">
+            <div style="font-weight:600;font-size:17px;margin-bottom:5px;">Z</div>
+            <input type="password" class="alert-input" id="alert-input" style="width:100%; border:0.5px solid var(--line); padding:8px; border-radius:5px; margin-top:10px; box-sizing:border-box;" placeholder="Token">
         </div>
-        <div class="alert-btns">
-            <button class="alert-btn" onclick="closeAlert()">取消</button>
+        <div style="display:flex;">
+            <button class="alert-btn" style="border-right:0.5px solid var(--line); font-weight:400;" onclick="closeAlert()">取消</button>
             <button class="alert-btn" id="alert-confirm">确定</button>
         </div>
     </div>
@@ -118,7 +108,6 @@
 
 <script>
     let notes = [];
-    let isSearchMode = false;
     let activeTag = null;
     let config = {
         token: localStorage.getItem('gh_token') || '',
@@ -127,29 +116,27 @@
     };
 
     const input = document.getElementById('note-input');
+    const container = document.getElementById('notes-container');
 
     window.onload = () => {
         if(localStorage.getItem('theme') === 'dark') {
             document.body.classList.add('dark-mode');
             document.querySelector('.theme-btn').innerText = '🌙';
         }
-        input.addEventListener('input', updateUI);
+        input.addEventListener('input', () => {
+            input.style.height = '38px';
+            input.style.height = Math.min(input.scrollHeight, 150) + 'px';
+        });
         if(config.token && config.id) fetchData();
     };
 
-    function updateUI() {
-        input.style.height = '38px';
-        input.style.height = Math.min(input.scrollHeight, 150) + 'px';
-        document.getElementById('word-count').innerText = notes.length;
-    }
-
-    function handleMemoClick() {
+    function handleMeClick() {
         if (config.verified) {
             config.verified = false;
             sessionStorage.removeItem('memo_auth');
             render();
         } else {
-            showIOSAlert("Z", true, (val) => {
+            showIOSAlert((val) => {
                 if (val === config.token) {
                     config.verified = true;
                     sessionStorage.setItem('memo_auth', 'true');
@@ -159,50 +146,92 @@
         }
     }
 
-    function addNote() {
-        let text = input.value.trim();
-        if(!text) return;
-        if(text === '098732 Delete') {
-            notes = notes.filter(n => !n.isHidden);
-            input.value = ''; saveData(); return;
-        }
-        if(/https?:\/\//.test(text) && !text.includes('#超链接')) text += ' #超链接';
+    // 【修改】新消息添加到数组末尾，并插入到 DOM 底部
+    function addNote(e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); }
+        
+        const rawText = input.value.trim();
+        if (!rawText) return;
 
-        notes.unshift({ id: Date.now(), content: text, ts: new Date().toISOString(), isHidden: false });
-        input.value = ''; updateUI(); saveData();
+        if (rawText === '098732 Delete') {
+            notes = notes.filter(n => !n.isHidden);
+            input.value = ''; render(); saveData(); return;
+        }
+
+        let content = rawText;
+        if (/https?:\/\//.test(content) && !content.includes('#超链接')) content += ' #超链接';
+
+        const newNote = {
+            id: Date.now(),
+            content: content,
+            ts: new Date().toISOString(),
+            isHidden: false
+        };
+
+        // 修改1：使用 push 插入末尾
+        notes.push(newNote);
+        
+        input.value = '';
+        input.style.height = '38px';
+
+        requestAnimationFrame(() => {
+            // 如果在搜索或标签模式，先清除以显示底部
+            if(activeTag) { activeTag = null; render(); }
+            
+            // 修改2：appendChild 插入末尾
+            const row = createNoteNode(newNote);
+            if(row) container.appendChild(row);
+            
+            // 修改3：自动滚动到底部
+            container.scrollTop = container.scrollHeight;
+            
+            document.getElementById('word-count').innerText = notes.length;
+            updateTags();
+        });
+
+        saveData();
+    }
+
+    function createNoteNode(n) {
+        if (n.isHidden && !config.verified) return null;
+        const row = document.createElement('div');
+        row.className = 'note-row';
+        row.id = `note-${n.id}`;
+        row.onclick = () => { input.value += `\n> ${n.content}\n`; input.focus(); };
+        
+        const date = new Date(n.ts);
+        row.innerHTML = `
+            <div class="ts">${isNaN(date) ? "刚才" : date.toLocaleString('zh-CN')}</div>
+            <div class="content-text">${format(n.content)}</div>
+        `;
+        return row;
     }
 
     function render() {
-        const container = document.getElementById('notes-container');
         container.innerHTML = '';
-        
-        let displayNotes = notes;
-        if(activeTag) displayNotes = notes.filter(n => n.content.includes(activeTag));
+        let filtered = [...notes];
+        if (activeTag) filtered = filtered.filter(n => n.content.includes(activeTag));
 
-        displayNotes.forEach(n => {
-            if(n.isHidden && !config.verified) return;
-            const row = document.createElement('div');
-            row.className = `note-row`;
-            row.id = `note-${n.id}`;
-            row.onclick = () => { input.value += `\n> ${n.content}\n`; input.focus(); updateUI(); };
-            
-            const dateObj = new Date(n.ts);
-            row.innerHTML = `
-                <div class="ts">${isNaN(dateObj) ? "刚才" : dateObj.toLocaleString('zh-CN')}</div>
-                <div class="content-text">${format(n.content)}</div>
-            `;
-            container.appendChild(row);
+        const fragment = document.createDocumentFragment();
+        filtered.forEach(n => {
+            const node = createNoteNode(n);
+            if(node) fragment.appendChild(node);
         });
+        container.appendChild(fragment);
         updateTags();
         document.getElementById('word-count').innerText = notes.length;
+        
+        // 渲染完成后滚动到底部
+        container.scrollTop = container.scrollHeight;
     }
 
     function format(t) {
-        return t.split('\n').map(line => {
-            if(line.startsWith('>')) return `<span class="quote-line"><span class="quote-mark">″</span>${line.substring(1).trim()}</span>`;
-            return line.replace(/&/g,"&amp;").replace(/</g,"&lt;")
+        return t.split('\n').map(l => {
+            const line = l.trim();
+            if (line.startsWith('>')) return `<span class="quote-line"><span class="quote-mark">″</span>${line.replace('>', '').trim()}</span>`;
+            return l.replace(/&/g,"&amp;").replace(/</g,"&lt;")
                 .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
-                .replace(/(https?:\/\/[^\s]+)/g, url => url.match(/\.(jpg|png|gif|webp)$/) ? `<img src="${url}" style="max-width:100%;border-radius:12px;margin-top:10px;">` : `<a href="${url}" target="_blank" style="color:var(--ios-blue);text-decoration:none;">${url}</a>`)
+                .replace(/(https?:\/\/[^\s]+)/g, url => url.match(/\.(jpg|png|gif|webp)$/) ? `<img src="${url}" style="max-width:100%;border-radius:12px;margin-top:10px;display:block;">` : `<a href="${url}" target="_blank" style="color:var(--ios-blue);text-decoration:none;">${url}</a>`)
                 .replace(/(#[^\s#]+)/g, '<span style="color:var(--ios-blue);font-weight:600;">$1</span>');
         }).join('\n');
     }
@@ -216,45 +245,28 @@
             const p = document.createElement('div');
             p.className = `tag-pill ${activeTag === t ? 'active' : ''}`; 
             p.innerText = t;
-            p.onclick = () => { activeTag = (activeTag === t) ? null : t; render(); };
-            let timer;
-            p.addEventListener('touchstart', (e) => {
-                timer = setTimeout(() => {
-                    e.stopPropagation();
-                    showIOSAlert(`删除标签 ${t}？`, false, () => {
-                        notes.forEach(n => n.content = n.content.replace(t, '').trim());
-                        saveData();
-                    });
-                }, 800);
-            });
-            p.addEventListener('touchend', () => clearTimeout(timer));
+            p.onclick = (e) => { e.stopPropagation(); activeTag = (activeTag === t) ? null : t; render(); };
             bar.appendChild(p);
         });
     }
 
     function toggleSearch() {
-        isSearchMode = !isSearchMode;
-        input.placeholder = isSearchMode ? "搜索笔记..." : "";
-        input.style.background = isSearchMode ? (document.body.classList.contains('dark-mode') ? "#2c2c2e" : "#fff9c4") : "";
-        if(!isSearchMode) render();
-    }
-
-    function doSearch() {
-        const q = input.value.toLowerCase();
-        const target = notes.find(n => n.content.toLowerCase().includes(q));
-        if(target) {
-            const el = document.getElementById(`note-${target.id}`);
-            el.scrollIntoView({behavior:'smooth', block:'center'});
-            el.style.backgroundColor = 'rgba(52, 199, 89, 0.2)';
-            setTimeout(() => el.style.backgroundColor = '', 2000);
+        const q = prompt("搜索内容:");
+        if (q) {
+            const found = notes.find(n => n.content.toLowerCase().includes(q.toLowerCase()));
+            if (found) {
+                activeTag = null; render();
+                setTimeout(() => {
+                    const el = document.getElementById(`note-${found.id}`);
+                    if(el) el.scrollIntoView({behavior:'smooth', block:'center'});
+                }, 100);
+            }
         }
     }
 
-    function showIOSAlert(title, showInput, onConfirm) {
+    function showIOSAlert(onConfirm) {
         const overlay = document.getElementById('ios-overlay');
         const inputField = document.getElementById('alert-input');
-        document.getElementById('alert-title').innerText = title;
-        inputField.style.display = showInput ? 'block' : 'none';
         inputField.value = '';
         overlay.style.display = 'flex';
         document.getElementById('alert-confirm').onclick = () => { onConfirm(inputField.value); closeAlert(); };
@@ -269,7 +281,7 @@
     }
 
     function hardLogout() {
-        showIOSAlert("清空缓存并退出？", false, () => { localStorage.clear(); sessionStorage.clear(); window.location.reload(); });
+        if(confirm("清空并退出？")) { localStorage.clear(); sessionStorage.clear(); window.location.reload(); }
     }
 
     async function fetchData() {
@@ -277,27 +289,24 @@
             const r = await fetch(`https://api.github.com/gists/${config.id}`, {headers:{Authorization:`token ${config.token}`}});
             const d = await r.json();
             notes = JSON.parse(d.files['notes.json'].content || '[]');
-            render(); updateUI();
-        } catch(e) { console.error("Sync Error"); }
+            render();
+        } catch(e) { console.error("Fetch Error"); }
     }
 
     async function saveData() {
-        render();
         try {
             await fetch(`https://api.github.com/gists/${config.id}`, {
                 method:'PATCH', headers:{Authorization:`token ${config.token}`},
                 body: JSON.stringify({files:{'notes.json':{content:JSON.stringify(notes)}}})
             });
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Save Error"); }
     }
 
     function syncAll() { 
         if(!config.token) {
-            showIOSAlert("输入 Gist ID", true, (id) => {
-                showIOSAlert("输入 Token", true, (tk) => {
-                    if(id && tk) { localStorage.setItem('gh_gist_id', id); localStorage.setItem('gh_token', tk); window.location.reload(); }
-                });
-            });
+            const id = prompt("Gist ID");
+            const tk = prompt("Token");
+            if(id && tk) { localStorage.setItem('gh_gist_id', id); localStorage.setItem('gh_token', tk); window.location.reload(); }
         } else fetchData();
     }
 </script>
